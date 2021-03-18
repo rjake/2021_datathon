@@ -112,6 +112,8 @@ ddt %>%
 # unsure of meaning of "court appointed" in representation_type. need to talk to someone from JAT.
 ```
 
+# Export
+
 ```{r export}
 # TO DO: export data somewhere
 ```
