@@ -7,33 +7,19 @@ output:
     theme: lumen
     highlight: tango
     toc: yes
-    toc_depth: 1
+    toc_depth: 3
     toc_float: TRUE
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(knitr)
-library(kableExtra)
-
-view_table <- function(tbl) {
-  kable(tbl) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE) %>%
-    print()
-}
-
-make_table <- function(var) {
-  t <- tabyl(ddt, var) %>%
-    select(1:3) %>%
-    mutate(percent = round(percent * 100, 3))
-  names(t) <- c(var, "n", "percent")
-  return(t)
-}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 # Package dependencies
 
-```{r dependencies, message = FALSE, warning = FALSE}
+```{r dependencies}
+library(knitr)
+library(kableExtra)
 library(tidyverse)
 library(janitor)
 library(assertr)
@@ -44,13 +30,13 @@ library(rlang)
 
 # Get data
 
-```{r get_data, eval = FALSE}
-ddt <- read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_details.csv", col_types = cols(
-  current_processing_status__processing_status = col_character())) %>%
-  clean_names()
-# ddt <- read_csv("c:/users/aplar/downloads/origddt.csv", col_types = cols(
-#   current_processing_status_processing_status = col_character())) %>%
+```{r get_data}
+# ddt <- read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_details.csv", col_types = cols(
+#   current_processing_status__processing_status = col_character())) %>%
 #   clean_names()
+ddt <- read_csv("c:/users/aplar/downloads/origddt.csv", col_types = cols(
+  current_processing_status_processing_status = col_character())) %>%
+  clean_names()
 
 # Crosswalks allow us to collapse messy processing statuses
 # Ask about where we should store files like this
@@ -65,7 +51,10 @@ processing_status_xwalk   <- read_csv(file.path("status_xwalk.csv"))
 # search_col = column to search for search_val
 # new_name = name pattern of new indicator variable
 flag_strings <- function(df, search_val, search_col, new_name) {
-  colname <- glue("{new_name}_{tolower(search_val)}")
+  colname <- tolower(search_val) %>%
+    str_replace_all(., " ", "_") %>%
+    str_replace_all(., "[^[:alpha:]]", "")
+  colname <- glue("{new_name}_{colname}")
   df <- df %>%
     mutate(!!colname := if_else(str_detect(UQ(sym(search_col)), search_val), 1, 0)) %>%
     relocate(UQ(sym(colname)), .after = UQ(sym(search_col)))
@@ -82,11 +71,24 @@ uniq_strings <- function(df, extract_col) {
   return(s)
 }
 
+view_table <- function(tbl) {
+  kable(tbl) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE) %>%
+    print()
+}
+
+make_table <- function(var) {
+  t <- tabyl(ddt, var) %>%
+    select(1:3) %>%
+    mutate(percent = round(percent * 100, 3))
+  names(t) <- c(var, "n", "percent")
+  return(t)
+}
 ```
 
 # Set expected data values
 
-```{r expected_vals, eval = FALSE}
+```{r expected_vals}
 date_fmt                 <- "\\d{4}-\\d{2}-\\d{2}"
 gender_cats              <- c("Female", "Male")
 race_cats                <- c("Asian",
@@ -114,7 +116,7 @@ earliest_dob <- ymd("1905-01-01")
 
 # Check input data
 
-```{r check_inputs, eval = FALSE}
+```{r check_inputs}
 ddt %>%
   verify(is_uniq(docket_id)) %>%
   verify(gender %in% gender_cats | is.na(gender)) %>%
@@ -151,7 +153,7 @@ ddt %>%
 
 ## Clean existing variables
 
-```{r clean_existing, eval = FALSE}
+```{r clean_existing}
 # race
 ddt <- ddt %>%
   mutate(race = case_when(race == "Asian" ~ "Asian/Pacific Islander",
@@ -174,7 +176,9 @@ ddt <- ddt %>%
 
 # current_processing_status_status_change_datetime
 ddt <- ddt %>%
-  mutate(current_processing_status_status_change_datetime = if_else(current_processing_status_status_change_datetime <= earliest_dob, NA_Date_, current_processing_status_status_change_datetime))
+  mutate(current_processing_status_status_change_datetime = if_else(current_processing_status_status_change_datetime <= earliest_dob,
+                                                                    NA_Date_,
+                                                                    current_processing_status_status_change_datetime))
 
 # representation type
 uniq_representation_type <- uniq_strings(ddt, "representation_type")
@@ -195,7 +199,14 @@ for (d in descriptors) {
 
 ## Constructed variables
 
-```{r constructs, eval = FALSE}
+```{r constructs}
+# indicator variables for judicial_districts
+uniq_judicial_districts <- uniq_strings(ddt, "judicial_districts")
+
+for (j in uniq_judicial_districts) {
+  ddt <- flag_strings(ddt, j, "judicial_districts", "jd")
+}
+
 # indicator variables for court_office_types
 uniq_court_office_types <- uniq_strings(ddt, "court_office_types")
 
@@ -235,7 +246,7 @@ for (d in discrete_cols) {
 ```
 
 ## Date variables
-```{r check_date, results = "asis"}
+```{r check_date}
 date_cols <- names(ddt)[which(str_detect(names(ddt), "date"))]
 
 ddt %>%
@@ -245,7 +256,7 @@ ddt %>%
 
 
 ## Continuous variables
-```{r check_continuous, results = "asis"}
+```{r check_continuous}
 continuous_cols <- setdiff(names(ddt), discrete_cols) %>%
   setdiff(., date_cols)
 
