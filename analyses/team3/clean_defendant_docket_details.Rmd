@@ -45,6 +45,18 @@ processing_status_xwalk   <- read_csv(file.path("status_xwalk.csv"))
 
 # Functions
 ```{r functions}
+# uniq_strings : extract unique values from comma delimited string variables
+uniq_strings <- function(df, extract_col) {
+  s <- df %>% pull(!!extract_col) %>%
+    str_split(., ",") %>%
+    unlist() %>%
+    str_squish() %>%
+    unique() %>%
+    sort(decreasing = TRUE)
+  s <- s[!is.na(s)]
+  return(s)
+}
+
 # flag_strings : search for values in a text column and create indicator var = 1 if found in column
 # df = data frame
 # search_val = value searching for in text column
@@ -52,23 +64,12 @@ processing_status_xwalk   <- read_csv(file.path("status_xwalk.csv"))
 # new_name = name pattern of new indicator variable
 flag_strings <- function(df, search_val, search_col, new_name) {
   colname <- tolower(search_val) %>%
-    str_replace_all(., " ", "_") %>%
-    str_replace_all(., "[^[:alpha:]]", "")
+    str_replace_all(., " |/|-", "_") %>%
+    str_replace_all(., "'", "")
   colname <- glue("{new_name}_{colname}")
   df <- df %>%
     mutate(!!colname := if_else(str_detect(UQ(sym(search_col)), search_val), 1, 0)) %>%
     relocate(UQ(sym(colname)), .after = UQ(sym(search_col)))
-}
-
-# uniq_strings : extract unique values from comma delimited string variables
-uniq_strings <- function(df, extract_col) {
-  s <- df %>% pull(!!extract_col) %>%
-    str_split(., ",") %>%
-    unlist() %>%
-    str_squish() %>%
-    unique()
-  s <- s[!is.na(s)]
-  return(s)
 }
 
 view_table <- function(tbl) {
@@ -110,7 +111,8 @@ municipality_cats        <- c("Bensalem Township",
                               "Warminster Township" )
 county_cats              <- c("Bucks", "Chester", "Delaware", "Philadelphia")
 
-earliest_dob <- ymd("1905-01-01")
+earliest_date <- ymd("1905-01-01")
+krasner_start <- ymd("2018-01-01")
 
 ```
 
@@ -140,17 +142,6 @@ ddt %>%
 
 # Clean data
 
-## TO DO
-
-- Should we drop municipality name outside of Philadelphia?
-- Not sure what we expect RE: ranges of date values. Produce report?
-- Check crosswalks: status_xwalk, representation_type_xwalk
-- Variable order
-- Is it meaningful to have sum of representation type?
-- Meaning of court_office_types vs. court_types?
-- Do we need codebook, esp. for newly created variables?
-- Create clean data file specs
-
 ## Clean existing variables
 
 ```{r clean_existing}
@@ -161,7 +152,7 @@ ddt <- ddt %>%
                           TRUE            ~ race))
 # dob
 # Set dobs before 1906 to NA
-ddt <- ddt %>% mutate(date_of_birth = if_else(date_of_birth <= earliest_dob, NA_Date_, date_of_birth))
+ddt <- ddt %>% mutate(date_of_birth = if_else(date_of_birth <= earliest_date, NA_Date_, date_of_birth))
 
 # merged on cleaned processing status
 before_merg <- nrow(ddt)
@@ -172,11 +163,12 @@ stopifnot(before_merg == nrow(ddt))
 
 ddt <- ddt %>%
   select(-current_processing_status_processing_status) %>%
-  rename(current_processing_status = clean_processing_status)
+  rename(current_processing_status = clean_processing_status) %>%
+  relocate(current_processing_status, .before = current_processing_status_status_change_datetime)
 
 # current_processing_status_status_change_datetime
 ddt <- ddt %>%
-  mutate(current_processing_status_status_change_datetime = if_else(current_processing_status_status_change_datetime <= earliest_dob,
+  mutate(current_processing_status_status_change_datetime = if_else(current_processing_status_status_change_datetime <= earliest_date,
                                                                     NA_Date_,
                                                                     current_processing_status_status_change_datetime))
 
@@ -206,6 +198,11 @@ uniq_judicial_districts <- uniq_strings(ddt, "judicial_districts")
 for (j in uniq_judicial_districts) {
   ddt <- flag_strings(ddt, j, "judicial_districts", "jd")
 }
+ddt <- ddt %>%
+  rowwise() %>%
+  mutate(judicial_districts_count := sum(c_across(jd_adams:jd_york))) %>%
+  ungroup() %>%
+  relocate(judicial_districts_count, .after = judicial_districts)
 
 # indicator variables for court_office_types
 uniq_court_office_types <- uniq_strings(ddt, "court_office_types")
@@ -213,6 +210,11 @@ uniq_court_office_types <- uniq_strings(ddt, "court_office_types")
 for (c in uniq_court_office_types) {
   ddt <- flag_strings(ddt, c, "court_office_types", "court_ofc")
 }
+ddt <- ddt %>%
+  rowwise() %>%
+  mutate(court_office_types_count := sum(c_across(court_ofc_commonwealth:court_ofc_supreme))) %>%
+  ungroup() %>%
+  relocate(court_office_types_count, .after = court_office_types)
 
 # indicator variables for court_types
 uniq_court_types <- uniq_strings(ddt, "court_types")
@@ -220,6 +222,11 @@ uniq_court_types <- uniq_strings(ddt, "court_types")
 for (c in uniq_court_types) {
   ddt <- flag_strings(ddt, c, "court_types", "court")
 }
+ddt <- ddt %>%
+  rowwise() %>%
+  mutate(court_types_count := sum(c_across(court_cp:court_pac))) %>%
+  ungroup() %>%
+  relocate(court_types_count, .after = court_types)
 
 # indicator variables for representation type
 uniq_representation_type <- uniq_strings(ddt, "representation_type")
@@ -227,23 +234,21 @@ uniq_representation_type <- uniq_strings(ddt, "representation_type")
 for (r in uniq_representation_type) {
   ddt <- flag_strings(ddt, r, "representation_type", "rep")
 }
+ddt <- ddt %>%
+  rowwise() %>%
+  mutate(representation_type_count := sum(c_across(rep_attorney_general:rep_standby))) %>%
+  ungroup() %>%
+  relocate(representation_type_count, .after = representation_type)
 
+# krasner
+# disposition_date arbitrarily chosen here...
+ddt <- ddt %>%
+  mutate(krasner = if_else(disposition_date < krasner_start, 0, 1),
+         krasner_years = as.numeric(interval(krasner_start, disposition_date), "years"))
 
 ```
-
 
 # Data checks
-
-## Discrete variables
-```{r check_discrete, results = "asis"}
-discrete_cols <- names(ddt)[sapply(ddt, function(var) length(unique(var)) <= 100)]
-
-for (d in discrete_cols) {
-  make_table(d) %>%
-    view_table()
-}
-
-```
 
 ## Date variables
 ```{r check_date}
@@ -254,6 +259,17 @@ ddt %>%
   summary()
 ```
 
+## Discrete variables
+```{r check_discrete, results = "asis"}
+discrete_cols <- names(ddt)[sapply(ddt, function(var) length(unique(var)) <= 100)] %>%
+  setdiff(., date_cols)
+
+for (d in discrete_cols) {
+  make_table(d) %>%
+    view_table()
+}
+
+```
 
 ## Continuous variables
 ```{r check_continuous}
@@ -265,7 +281,17 @@ ddt %>%
   summary()
 ```
 
+## Order of variables on file
+```{r order}
+glimpse(ddt)
+```
+
 # Data questions
+
+- Should we drop municipality name outside of Philadelphia?
+- Check crosswalks: status_xwalk
+- Meaning of court_office_types vs. court_types?
+- Do we need codebook, esp. for newly created variables?
 
 # Export
 
