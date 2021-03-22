@@ -26,6 +26,7 @@ library(assertr)
 library(lubridate)
 library(glue)
 library(rlang)
+library(summarytools)
 ```
 
 # Get data
@@ -281,17 +282,20 @@ ddt %>%
   summary()
 ```
 
-## Order of variables on file
-```{r order}
-glimpse(ddt)
-```
-
 # Data questions
 
 - Should we drop municipality name outside of Philadelphia?
 - Check crosswalks: status_xwalk
 - Meaning of court_office_types vs. court_types?
-- Do we need codebook, esp. for newly created variables?
+
+# Codebook
+
+```{r codebook}
+print(dfSummary(ddt,
+                graph.magnif = 0.75,
+                max.tbl.height = 300),
+      method = "render")
+```
 
 # Export
 
