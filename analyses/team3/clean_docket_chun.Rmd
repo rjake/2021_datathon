@@ -1,0 +1,208 @@
+---
+title: "clean docket defendant data"
+author: "Chun"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# load packages
+```{r dependency, echo=T, warning=F, message=F}
+library(tidyverse)
+library(lubridate)
+```
+
+# original data glance
+
+```{r echo=T, warning=F, message=F}
+ddt = read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_details.csv")
+```
+
+Original data constitute 370,313 rows and 19 columns, with column names listed as
+
+```{r}
+colnames(ddt)
+```
+
+Each row has unique docket_id (thus 370,313 ids), which should be used to key for data split and table merging.
+
+Quick description of data
+
+```{r}
+Hmisc::describe(ddt)
+```
+
+
+# clean data
+
+## defendent info
+
+Defendent information were stored in first 4 columns (`docket_id`, `gender`, `race`, `date_of_birth`). The age of defendent can be added by subtraction between `date_of_birth` and `arrest_date`. The reason to choose `arrest_date` over `complaint_date` is missing value number. `arrest_age` was calculated just using year of `arrest_date`. 
+
+```{r}
+defendent_info = ddt %>% select(docket_id, gender, race, date_of_birth, arrest_date) %>% 
+  mutate(arrest_age_by_year=year(arrest_date) - year(date_of_birth))
+```
+
+
+## docket dates
+There are several docket relevant dates included in docket data. `arrest_date`, `complaint_date`, `disposition_date`, `filing_date`, `initiation_date` and `current_processing_status__status_change_datetime`. Since "day is set to the first of the month to provide some de-identification", we can use this date to figure the order of arrest, complaint, disposition, filing and initiation. 
+
+By common sense, I assumed the date order should be complaint -> initiation -> filing -> arrest -> disposition. However, 52.6% of complaint is missing, thus we used `initiation_date` as reference point.
+
+```{r}
+ddt_dates = ddt %>% 
+  select(docket_id, arrest_date, filing_date, initiation_date, disposition_date, filing_date, complaint_date, current_processing_status__status_change_datetime) %>% 
+  mutate(
+    complaint_by_month=month(complaint_date) - month(initiation_date),
+    filing_by_month=month(filing_date) - month(initiation_date), 
+    arrest_by_month=month(arrest_date) - month(initiation_date),
+    disposition_by_month=month(disposition_date) - month(initiation_date),
+  )
+
+# fix current_processing_status__status_change_datetime date
+ddt_dates = ddt_dates %>% 
+  mutate(current_processing_status__status_change_datetime = ifelse(current_processing_status__status_change_datetime==ymd("0001-01-01"), NA, current_processing_status__status_change_datetime))
+
+ddt_dates %>% select(docket_id, contains("by_month"))
+
+```
+
+In comparison between complaint and initiation, 4.4% dockets initiated before the complaints
+```{r}
+nrow(ddt_dates %>% filter(!is.na(complaint_by_month), complaint_by_month > 0)) / nrow(ddt_dates)
+```
+
+In comparison between filing and initiation, 0.5% dockets filed before the initiation. Can it be an error?
+```{r}
+nrow(ddt_dates %>% filter(!is.na(filing_by_month), filing_by_month < 0)) / nrow(ddt_dates)
+```
+
+In comparison between arrest and initiation, 20% dockets defendent was arrested before the initiation. Can it be an error?
+
+```{r}
+nrow(ddt_dates %>% filter(!is.na(arrest_by_month), arrest_by_month < 0)) / nrow(ddt_dates)
+```
+
+In comparison between arrest and filing, among 20% dockets, defendent was arrested before the docket was filed. Can it be an error?
+
+```{r}
+nrow(ddt_dates %>% filter(arrest_by_month -  filing_by_month < 0)) / nrow(ddt_dates)
+```
+
+
+In comparison between disposition and initiation, 25.3% dockets was under disposition before the initiation. Can it be an error?
+
+```{r}
+nrow(ddt_dates %>% filter(!is.na(disposition_by_month), disposition_by_month < 0)) / nrow(ddt_dates)
+```
+
+## deal with aggregation values
+
+4 values are aggregated - `judicial_districts`, `court_office_types`, `court_types`, `representation_type`. 
+
+### judicial_districts
+There are 44 unique judicial_districts. All docket cases contains "Philadephia".
+
+```{r}
+ddt_judicial_districts = ddt %>% select(docket_id, judicial_districts) %>% 
+  separate_rows(judicial_districts, sep=", ")
+```
+
+
+```{r}
+ddt_judicial_districts %>% 
+  group_by(judicial_districts) %>% 
+  summarise(docket_n = n_distinct(docket_id)) %>% 
+  ungroup() %>% 
+  arrange(desc(docket_n)) %>% 
+  mutate(docket_ratio = scales::percent(docket_n /nrow(ddt))) %>% 
+  rmarkdown::paged_table()
+```
+
+add all other columns into table `ddt_judicial_districts`
+
+```{r echo=T, warning=F, message=F}
+ddt_judicial_districts = ddt %>% 
+  select(docket_id, status_name, current_processing_status__processing_status, court_office__court__display_name, municipality__name, municipality__county__name) %>% 
+left_join(
+  ddt_judicial_districts
+)
+
+```
+
+### court_office_types and court_types
+
+
+```{r}
+ddt_court_type = ddt %>% select(docket_id, court_office_types, court_types)
+```
+
+
+```{r}
+ddt_court_type %>% separate_rows(court_office_types) %>% 
+  group_by(court_office_types) %>% 
+  summarise(docket_n = n_distinct(docket_id)) %>% 
+  ungroup() %>% 
+  arrange(desc(docket_n)) %>% 
+  mutate(docket_ratio = scales::percent(docket_n /nrow(ddt))) %>% 
+  rmarkdown::paged_table()
+```
+
+[3 court types](https://github.com/rjake/2021_datathon/blob/meredith-defendant-clean/data/data_description.md#court-type) 
+- PAC: Pennsylvania Appellate Court (Superior, Commonwealth, Supreme)
+- CP: Court of Common Pleas
+- MC: Municipal Court
+
+```{r}
+ddt_court_type %>% separate_rows(court_types) %>% 
+  group_by(court_types) %>% 
+  summarise(docket_n = n_distinct(docket_id)) %>% 
+  ungroup() %>% 
+  arrange(desc(docket_n)) %>% 
+  mutate(docket_ratio = scales::percent(docket_n /nrow(ddt))) %>% 
+  rmarkdown::paged_table()
+```
+
+```{r}
+ddt_court_type = ddt_court_type %>% 
+  separate_rows(court_office_types) %>% 
+  mutate(court_types = case_when(
+    court_office_types %in% c("Superior", "Supreme", "Commonwealth") ~ "PAC",
+    court_office_types=="Municipal" ~ "MC",
+    court_office_types=="Criminal" ~ "CP",
+    TRUE ~ court_types
+  ))
+```
+
+### representation_type
+
+There are 17 unique representation types, and 67.3% dockets used "Public Defender" (compared to 23.7% used private)
+```{r}
+ddt_representation_type = ddt %>% select(docket_id, representation_type) %>% 
+  separate_rows(representation_type, sep=", ")
+```
+
+```{r}
+ddt_representation_type %>% 
+  group_by(representation_type) %>% 
+  summarise(docket_n = n_distinct(docket_id)) %>% 
+  ungroup() %>% 
+  arrange(desc(docket_n)) %>% 
+  mutate(docket_ratio=scales::percent(docket_n/nrow(ddt))) %>% 
+  rmarkdown::paged_table()
+```
+
+
+# save all files
+```{r}
+save(defendent_info, ddt_dates, ddt_judicial_districts, ddt_court_type, ddt_representation_type, file="ddt_tables.Rdata")
+```
+
+# session info
+```{r}
+sessionInfo()
+```
+
