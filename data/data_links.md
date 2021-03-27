@@ -2,6 +2,16 @@
 
 Click on each link to download the respective dataset:
 
+### **NEW:** Statute Name (legal code number) and Description
+
+[statutes.csv](statutes.csv)
+
+### **NEW:** Defendant and Docket IDs
+
+Find repeat defendants using unique defendant ids matched to their corresponding dockets.
+
+https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_ids.csv
+
 ### Offenses and disposition info
 
 All years:
