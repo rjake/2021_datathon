@@ -1,4 +1,4 @@
-statute_name,statute_description,Jurisdiction,title,title_text,article_part,article_text,chapter,chapter_text,section,section_text
+statute_name,statute_description,jurisdiction,title,title_text,article_part,article_text,chapter,chapter_text,section,section_text
 0_0_0,Unknown Statute,PA,0,,-,-,-,-,-,-
 10_907_A,"Individual Prize Limit $2,000",PA,10,Charities and Welfare,7A,Local Option Small Games of Chance,9,Tavern Gaming,328,Prize limits
 16_2329,Disorderly Conduct In/About Ct.House/Jail,PA,16,Counties,XXIIII,Grounds and Buildings,1,The County Code,2329,Repealed
@@ -730,29 +730,29 @@ statute_name,statute_description,Jurisdiction,title,title_text,article_part,arti
 42_9134,Arrest Prior To Requisition,PA,42,Judiciary and Judicial Procedure,VIII,Criminal Proceedings,91,Detainers and Extradition,9134,Arrest prior to requisition
 42_9161,Arrest Prior To Requisition,PA,42,Judiciary and Judicial Procedure,VIII,Criminal Proceedings,91,Detainers and Extradition,9161,Arrest prior to requisition
 43_871_A,Employee-False Stmts To Obtain U.C. Benefits,PA,43,Labor,VIII,Penalty Provisions,14,Unemployment Compensation Law,871,False statements and representations to obtain or increase compensation
-47_4-406_A1,Restr Sales By Liq Lic,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-406,Sales by Liquor Licensees; Restrictions
-47_4-491_1,Unlawful Sales Of Liquor,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-491,"Unlawful Acts Relative to Liquor, Alcohol and Liquor Licensees"
-47_4-491_2,Possession or transportation of liquor or alcohol,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-491,"Unlawful Acts Relative to Liquor, Alcohol and Liquor Licensees"
-47_4-492_1,Manuf Malt/Brewed Bev W/O License,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-492,Unlawful acts relative to malt or brewed beverages and licensees
-47_4-492_2,Unlic Cons Malt/Brewed Bev On Premises,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-492,Unlawful acts relative to malt or brewed beverages and licensees
-47_4-492_7,Sales Of Malt/Brewed Bev By Club Bet 3am/7am,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-492,Unlawful acts relative to malt or brewed beverages and licensees
-47_4-493_1,Furnish Liq/Malt/Brewed Bev Certain Per,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-493,"Unlawful Acts Relative to Liquor, Malt and Brewed Beverages and Licensees"
-47_4-493_16,Furnish Liquor Or Malt Bev At Unlaw Hr,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,,4-493,"Unlawful Acts Relative to Liquor, Malt and Brewed Beverages and Licensees"
+47_4-406_A1,Restr Sales By Liq Lic,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-406,Sales by Liquor Licensees; Restrictions
+47_4-491_1,Unlawful Sales Of Liquor,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-491,"Unlawful Acts Relative to Liquor, Alcohol and Liquor Licensees"
+47_4-491_2,Possession or transportation of liquor or alcohol,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-491,"Unlawful Acts Relative to Liquor, Alcohol and Liquor Licensees"
+47_4-492_1,Manuf Malt/Brewed Bev W/O License,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-492,Unlawful acts relative to malt or brewed beverages and licensees
+47_4-492_2,Unlic Cons Malt/Brewed Bev On Premises,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-492,Unlawful acts relative to malt or brewed beverages and licensees
+47_4-492_7,Sales Of Malt/Brewed Bev By Club Bet 3am/7am,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-492,Unlawful acts relative to malt or brewed beverages and licensees
+47_4-493_1,Furnish Liq/Malt/Brewed Bev Certain Per,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-493,"Unlawful Acts Relative to Liquor, Malt and Brewed Beverages and Licensees"
+47_4-493_16,Furnish Liquor Or Malt Bev At Unlaw Hr,PA,47,Liquor,IV,"Licenses and Regulations; Liquor, Alcohol and Malt Brewed Beverages",1,Liquor Code,4-493,"Unlawful Acts Relative to Liquor, Malt and Brewed Beverages and Licensees"
 50_4605_1,Delivery Of Intoxicating Substance,PA,50,Mental Health,VI,Miscellaneous Provisions,12,Mental Health and Intellectual Disability Act,4605,Penalties
 52_3322_A,Minining Without A License or Permit or In Violation of Terms of License,PA,52,Mines and Mining,-,-,28,Noncoal Surface Mining Conservation and Reclamation Act,3322,Criminal penalties
-62_1407_A1,False/Fraud Med Assist Claim,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A12,Unentitled Reimbursement,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A2,Bribe/Rebate Furnish Med Assist,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A3,Submit Dup Claim Med Assist,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A4,Submit Claim Serv Not Rend'd To Pt,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A5,Submit Med Claim Unrel Serv,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A6,Submit Claim Or Refer Improp Serv,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A7,Submit Claim W/False Info,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1407_A9,Submit Claim Serv Not Rend'd By Prov,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1408_A1,Recipient Prohibited Acts-False Stmt,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
-62_1408_A2,Conceal Info Affecting Benefits,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,14,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A1,False/Fraud Med Assist Claim,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A12,Unentitled Reimbursement,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A2,Bribe/Rebate Furnish Med Assist,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A3,Submit Dup Claim Med Assist,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A4,Submit Claim Serv Not Rend'd To Pt,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A5,Submit Med Claim Unrel Serv,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A6,Submit Claim Or Refer Improp Serv,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A7,Submit Claim W/False Info,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1407_A9,Submit Claim Serv Not Rend'd By Prov,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1408_A1,Recipient Prohibited Acts-False Stmt,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
+62_1408_A2,Conceal Info Affecting Benefits,PA,62,Poor Persons and Public Welfare,XIV,Fraud and Abuse Control,1,Public Welfare Code,1407,"Provider prohibited acts, criminal penalties and civil remedies"
 62_4503_A1,Bid-rigging unlawful / contract,PA,62,Procurement,-,-,45,Antibid-rigging,4503,Prohibited activities
-62_481_A,Fraud Obt Foodstamps/Assistance,PA,62,Poor Persons and Public Welfare,IV,Public Assistance,-,-,481,False statements; investigations; penalty
+62_481_A,Fraud Obt Foodstamps/Assistance,PA,62,Poor Persons and Public Welfare,IV,Public Assistance,1,Public Welfare Code,481,False statements; investigations; penalty
 63_1211_A,Psychology - License required,PA,63,Professions and Occupations (State Licensed),-,-,26,Professional Psycologists Practice,1211,Subpoenas
 63_1602_A,License Required,PA,63,Professions and Occupations (State Licensed),-,-,30,Insurance Adjusters,1602,License
 63_1607,Violations,PA,63,Professions and Occupations (State Licensed),-,-,30,Insurance Adjusters,1607,Violations
@@ -765,17 +765,17 @@ statute_name,statute_description,Jurisdiction,title,title_text,article_part,arti
 65_1103_F,Restricted Activities - Entering Contracts,PA,65,Public Officers,II,Accountability,11,Ethics Standards and Financial Disclosure,1103,Restricted activities
 65_1105_A,Statement of Financial Interests - Form,PA,65,Public Officers,II,Accountability,11,Ethics Standards and Financial Disclosure,1105,Statement of financial interests
 72_228-A_A,Cigarettes / Sales W/Out License,PA,72,Taxation and Fiscal Affairs,II-A,Cigarette Sales and Licensing,1,The Fiscal Code,228,Sales without license
-72_7268_B,Fail To Remit Sales Tax/File Return,PA,72,,II,Tax for Education,5,Tax Reform Code,7268,Crimes
-72_7353_B,Fail To Collect/Pay Pers Inc Tax,PA,72,,III,Personal Income Tax,5,Tax Reform Code,7353,Crimes
-72_7353_C,Fail To Keep/File Reg'd Per Inc Tax Rec,PA,72,,III,Personal Income Tax,5,Tax Reform Code,7353,Crimes
-72_8272_A,Sales Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8272,Sales of unstamped cigarettes
-72_8272_B,False/Fraud/Etc Sales Of Unstamp Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8272,Sales of unstamped cigarettes
-72_8273_A,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8273,Sales of unstamped cigarettes
-72_8273_B,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8273,Sales of unstamped cigarettes
-72_8273_C,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8273,Sales of unstamped cigarettes
-72_8274_A,Counterfeiting Tax Stamps,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,IX,Penalties and Enforcement,8274,Counterfeiting
-72_9414_2,Selling Consumer Fireworks in Violation,PA,72,Taxation and Fiscal Affairs,XXIV,Fireworks,-,-,9414,Penalties
-72_9414_4,Selling Federally Illegal Explosives,PA,72,Taxation and Fiscal Affairs,XXIV,Fireworks,-,-,9414,Penalties
+72_7268_B,Fail To Remit Sales Tax/File Return,PA,72,Taxation and Fiscal Affairs,II,Tax for Education,5,Tax Reform Code,7268,Crimes
+72_7353_B,Fail To Collect/Pay Pers Inc Tax,PA,72,Taxation and Fiscal Affairs,III,Personal Income Tax,5,Tax Reform Code,7353,Crimes
+72_7353_C,Fail To Keep/File Reg'd Per Inc Tax Rec,PA,72,Taxation and Fiscal Affairs,III,Personal Income Tax,5,Tax Reform Code,7353,Crimes
+72_8272_A,Sales Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8272,Sales of unstamped cigarettes
+72_8272_B,False/Fraud/Etc Sales Of Unstamp Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8272,Sales of unstamped cigarettes
+72_8273_A,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8273,Sales of unstamped cigarettes
+72_8273_B,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8273,Sales of unstamped cigarettes
+72_8273_C,Poss Of Unstamped Cig,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8273,Sales of unstamped cigarettes
+72_8274_A,Counterfeiting Tax Stamps,PA,72,Taxation and Fiscal Affairs,XII,Cigarette Tax,5,Tax Reform Code,8274,Counterfeiting
+72_9414_2,Selling Consumer Fireworks in Violation,PA,72,Taxation and Fiscal Affairs,XXIV,Fireworks,5,Tax Reform Code,9414,Penalties
+72_9414_4,Selling Federally Illegal Explosives,PA,72,Taxation and Fiscal Affairs,XXIV,Fireworks,5,Tax Reform Code,9414,Penalties
 73_1934_A,Dealers Retention Of Pm/Inspection,PA,73,Trade and Commerce,-,-,27,Purchase and Sale of Precious Metals,1934,Dealer's retention of precious metal and availability for inspection
 73_517.8_A1,False Stmt to Induce Agreement for Home Improvement Services,PA,73,Trade and Commerce,-,-,14B,Home Improvement Consumer Protection,517,Home improvement fraud
 73_517.8_A2,Receives Advance Payment For Services and Fails to Perform,PA,73,Trade and Commerce,-,-,14B,Home Improvement Consumer Protection,517,Home improvement fraud
@@ -964,17 +964,17 @@ statute_name,statute_description,Jurisdiction,title,title_text,article_part,arti
 75_4706_C,Fail To Obtain Emission Cert,PA,75,Vehicles,IV,Vehicle Characteristics,47,Inspection of Vehicles,4706,Prohibition on expenditures for emission inspection program
 75_4706_C5,Evidence Of Emission Inspection,PA,75,Vehicles,IV,Vehicle Characteristics,47,Inspection of Vehicles,4706,Prohibition on expenditures for emission inspection program
 75_4730_A1,Violation Of Use Of Certif Of Inspection,PA,75,Vehicles,IV,Vehicle Characteristics,47,Inspection of Vehicles,4730,Violations of use of certificate of inspection
-75_6308_A,Investigation By Officer/Duty Of Operator,PA,75,Vehicles,V,Administration and Enforcement,63,,6308,Investigation by police officers
-75_6308_D,Investigation/Records,PA,75,Vehicles,V,Administration and Enforcement,63,,6308,Investigation by police officers
-75_6309.1,"Impoundment/Vehicles Of 17,000 Lbs Or Less",PA,75,Vehicles,V,Administration and Enforcement,63,,6309,"Impoundment for nonpayment of fines; vehicles or combinations with a gross vehicle weight rating of 17,001 pounds or more"
-75_6309.2,Immobilization/Drvg Without Operating Privileges,PA,75,Vehicles,V,Administration and Enforcement,63,,6309,"Impoundment for nonpayment of fines; vehicles or combinations with a gross vehicle weight rating of 17,001 pounds or more"
-75_7111,Deal In Titles & Plates Stolen Veh,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7111,Dealing in titles and plates for stolen vehicles
-75_7112,False Rep Theft/Conversion Of Veh Police,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7112,False report of theft or conversion of vehicle
-75_7121,Make False Appli For Title Reg,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7121,False application for certificate of title or registration
-75_7122_1,Fraud Alter/Forg/Counter Title Reg Ins,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7122,"Altered, forged or counterfeit documents and plates"
-75_7122_3,Poss/Sale/Use Display Documents,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7122,"Altered, forged or counterfeit documents and plates"
-75_7124,Fraudulent Use/Removal Of Reg Plate,PA,75,Vehicles,VI,Miscellaneous Provisions,71,,7124,Fraudulent use or removal of registration plate
-75_7704,Rules And Regulations,PA,75,Vehicles,VI,Miscellaneous Provisions,77,,7704,Rules and regulations
+75_6308_A,Investigation By Officer/Duty Of Operator,PA,75,Vehicles,V,Administration and Enforcement,63,Enforcement,6308,Investigation by police officers
+75_6308_D,Investigation/Records,PA,75,Vehicles,V,Administration and Enforcement,63,Enforcement,6308,Investigation by police officers
+75_6309.1,"Impoundment/Vehicles Of 17,000 Lbs Or Less",PA,75,Vehicles,V,Administration and Enforcement,63,Enforcement,6309,"Impoundment for nonpayment of fines; vehicles or combinations with a gross vehicle weight rating of 17,001 pounds or more"
+75_6309.2,Immobilization/Drvg Without Operating Privileges,PA,75,Vehicles,V,Administration and Enforcement,63,Enforcement,6309,"Impoundment for nonpayment of fines; vehicles or combinations with a gross vehicle weight rating of 17,001 pounds or more"
+75_7111,Deal In Titles & Plates Stolen Veh,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7111,Dealing in titles and plates for stolen vehicles
+75_7112,False Rep Theft/Conversion Of Veh Police,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7112,False report of theft or conversion of vehicle
+75_7121,Make False Appli For Title Reg,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7121,False application for certificate of title or registration
+75_7122_1,Fraud Alter/Forg/Counter Title Reg Ins,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7122,"Altered, forged or counterfeit documents and plates"
+75_7122_3,Poss/Sale/Use Display Documents,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7122,"Altered, forged or counterfeit documents and plates"
+75_7124,Fraudulent Use/Removal Of Reg Plate,PA,75,Vehicles,VI,Miscellaneous Provisions,71,Vehicle Theft and Related Provisions,7124,Fraudulent use or removal of registration plate
+75_7704,Rules And Regulations,PA,75,Vehicles,VI,Miscellaneous Provisions,77,Snowmobiles and All-Terrain Vehicles,7704,Rules and regulations
 77_1039.2_10,Wrk Comp Fraud - Fail To Make Report,PA,77,Workers' Compensation,-,-,7F,Insurance Fraud,1039,Offenses
 77_1039.2_11,Wrk Comp Fraud - Receives Benefits,PA,77,Workers' Compensation,-,-,7F,Insurance Fraud,1039,Offenses
 77_1039.2_2,Workmans Compensation Insurance Fraud,PA,77,Workers' Compensation,-,-,7F,Insurance Fraud,1039,Offenses
