@@ -60,7 +60,8 @@ off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv")) %>%
       grade %>%                              # forcats will default to alpha order
       fct_relevel("H1", "H2", after = 0) %>%  # move these to the front
       fct_relevel("IC", after = Inf)  %>%     # move this to the back
-      fct_rev()
+      fct_rev() %>% 
+      factor(ordered = TRUE)
   ) 
 def_raw <- vroom::vroom(file.path(dat_dir, "defendant_docket_details.csv")) %>%
   replace_na(list(race = 'Unknown/Unreported')) 
@@ -280,8 +281,8 @@ Regardless, most cases have either black or white defendants, so I chose to comp
 ```{r }
 def_race <- def_raw %>%
   mutate(period = case_when(
-    filing_date < larry_date & filing_date >= start_period_1 ~ 'before',
-    filing_date >= larry_date & filing_date < end_period_2 ~ 'after',
+    between(filing_date, start_period_1, larry_date) ~ 'before',
+    between(filing_date, larry_date, end_period_2) ~ 'after',
     TRUE ~ NA_character_)) %>%
   count(race, period, name = 'n_cases')
 
@@ -375,6 +376,7 @@ Creating a dataset grouped by docket id with the each case's most serious offens
 ```{r cache=TRUE}
 # grouping the data, such that we will have one record per docket_id for offenses
 offense_grouped <- off_raw %>%
+  filter(!is.na(grade)) %>% 
   group_by(docket_id) %>%
   summarise(
     n_offenses = length(grade),
@@ -391,7 +393,8 @@ Upon merging, there's only missing values for most_ser_off.
 It makes sense that there are missing values for this variable because we saw that in the original offenses dataset; some cases did not have grades for offenses.
 
 ```{r }
-joined <- left_join(bail_grouped, def_subset, by = "docket_id") %>%
+joined <- bail_grouped %>% 
+  left_join(def_subset, by = "docket_id") %>%
   left_join(offense_grouped, by = "docket_id")
 
 # checking for missing data in the joined dataset
@@ -406,8 +409,8 @@ I also added dummy variables for before and after.
 ```{r }
 joined16_19 <- joined %>%
   mutate(period = case_when(
-    date_first_bail < larry_date & date_first_bail >= start_period_1 ~ 'before',
-    date_first_bail >= larry_date & date_first_bail < end_period_2 ~ 'after',
+    between(date_first_bail, start_period_1, larry_date) ~ 'before',
+    between(date_first_bail, larry_date, end_period_2) ~ 'after',
     TRUE ~ NA_character_)) %>%
   filter(!is.na(period))
 ```
