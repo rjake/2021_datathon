@@ -2,10 +2,6 @@
 title: "Bail Race"
 author: "Katrina Gutierrez"
 date: "3/29/2021"
-output:
-  github_document
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "reports") })
 ---
 
 ```{r setup, include=FALSE}
@@ -52,8 +48,6 @@ bail_raw <- vroom::vroom(file.path(dat_dir, "bail.csv"))
 off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv"))
 def_raw <- vroom::vroom(file.path(dat_dir, "defendant_docket_details.csv")) %>%
   replace_na(list(race = 'Unknown/Unreported')) 
-
-
 ```
 
 ## Cleaning Bail Data
@@ -108,7 +102,7 @@ To explore this issue, I first looked at how many bail amounts were associated w
 In most cases, there was only one value for bail for a given action date + action type + docket id.
 However, in some cases there were up to 3 different bail amounts in the same month for a docket, and these also had the same action type.
 
-```{r }
+```{r cache=TRUE}
 # Grouped the bail data to see the number unique bail amounts associated with a given docket_id + action_date + action_type_name
 bail_amounts_per_docket <- bail %>%
   group_by(docket_id, action_date, action_type_name) %>%
@@ -126,7 +120,7 @@ Since I wanted initial bail for each docket, I looked at how severe this issue w
 Most dockets had only one value for bail amount for the "Set" type of actions in the first month.
 However, there were a few that had 2 different bail amounts in the first month and both with a "Set" action type.
 
-```{r }
+```{r cache=TRUE}
 # Grouping the result of the previous test by docket_id to see what is happening for the first action date.
 # The data was already sorted by action date previously and with action type "Set" at the top for each date.
 test2 <- bail_amounts_per_docket %>%
@@ -145,9 +139,9 @@ Next, I wanted a better understanding of how frequently there are two different 
 It turns out this issue is pretty rare.
 Meaning, there are 188 docket_ids (0.054% of cases for all years) where there are two bail values to choose from for initial bail.
 
-```{r }
+```{r cache=TRUE}
 # filters the previous results for dockets with more than one value for bail in the first month
-test3 <- test2 %>% filter(first_bail_vals > 1)
+test3 <- test2 %>% ungroup() %>% filter(first_bail_vals > 1)
 
 # Creates a list of the docket ids fitting this criteria
 mult_inital_bail <- unique(test3$docket_id)
@@ -176,7 +170,7 @@ Creating a dataset where each record is a docket_id with summary bail info like:
 -   minimum/maximum bail ever set during the case
 -   first and last bail amount set + the dates
 
-```{r }
+```{r cache=TRUE}
 # grouping and summarizing the data, such that we have one record per docket_id for bail
 bail_grouped <- bail %>%
   group_by(docket_id) %>%
@@ -202,7 +196,7 @@ It's difficult to understand what each judge has done for each docket because al
 
 So for example, if we wanted to look at action type "Increase Bail Amount" on day X for docket Y, we would see all of the judges associated with docket Y for that action.
 
-```{r }
+```{r cache=TRUE}
 
 bail <- bail %>% arrange(docket_id, action_date, action_type_name, total_amount, registry_entry_code)
 
@@ -235,7 +229,7 @@ Usually, at this granular level, there is only one judge associated with each re
 
 I'm not sure how useful this granular data is though because there are 1508 registry entry codes, and I don't know what exactly they mean.
 
-```{r }
+```{r cache=TRUE}
 # there are 1508 different registry entry codes
 length(unique(bail$registry_entry_code))
 
@@ -382,7 +376,7 @@ offense_grade %>%
 
 Creating a dataset grouped by docket id with the each case's most serious offense + number of offenses.
 
-```{r }
+```{r cache=TRUE}
 # grouping the data, such that we will have one record per docket_id for offenses
 offense_grouped <- off_raw %>%
   group_by(docket_id) %>%
