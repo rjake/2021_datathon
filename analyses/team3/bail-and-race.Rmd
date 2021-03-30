@@ -14,6 +14,19 @@ Purpose of this file:
 -   merge bail with defendant and offenses data
 -   look at bail trends disaggretated by race and the grade of the offense
 
+
+## Outstanding questions
+
+-   How should we choose initial bail when there are two different values for bail in the first action date?
+-   If we choose to consider offense severity alongside bail, how should we deal with cases that have multiple offense grades?\
+-   When plotting initial bail vs race, how should I use scale_y\_log10 when some bail amounts are zero?
+-   What does a zero value for bail actually mean?
+
+_Possible areas for future exploration_
+
+-   Trends for gender and age
+-   Trends for judge actions (and how do we actually approach this?)
+
 ## Initial set-up
 
 Loading libraries
@@ -26,8 +39,6 @@ library(vroom)
 
 theme_set(theme_minimal())
 theme_update(panel.grid.minor = element_blank())
-
-# setwd("C:/Users/katri/Documents/GT/R-Ladies Datathon 2021")
 ```
 
 Loading the full datasets (all years):
@@ -43,7 +54,14 @@ end_period_2 <- larry_date + period(2, 'years')
 dat_dir <- "csv"
 
 bail_raw <- vroom::vroom(file.path(dat_dir, "bail.csv"))
-off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv"))
+off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv")) %>% 
+  mutate(
+    grade = 
+      grade %>%                              # forcats will default to alpha order
+      fct_relevel("H1", "H2", after = 0) %>%  # move these to the front
+      fct_relevel("IC", after = Inf)  %>%     # move this to the back
+      fct_rev()
+  ) 
 def_raw <- vroom::vroom(file.path(dat_dir, "defendant_docket_details.csv")) %>%
   replace_na(list(race = 'Unknown/Unreported')) 
 ```
@@ -86,8 +104,7 @@ bail <- bail_raw %>%
     ),
     action_date = ymd(action_date),
     action_type_name = factor(action_type_name)
-  ) %>%
-  arrange(docket_id, action_date, action_type_name)
+  )
 
 # checking the levels for action_type_name
 levels(bail$action_type_name)
@@ -102,11 +119,15 @@ However, in some cases there were up to 3 different bail amounts in the same mon
 
 ```{r cache=TRUE}
 # Grouped the bail data to see the number unique bail amounts associated with a given docket_id + action_date + action_type_name
+
+system.time(
 bail_amounts_per_docket <- bail %>%
   group_by(docket_id, action_date, action_type_name) %>%
   summarise(
-    n_bail_vals = n_distinct(total_amount)
+    n_bail_vals = length(unique(total_amount)),
+    .groups = 'drop'
   )
+)
 
 # Usually there is only one value for bail, but sometimes there's up to 3.
 # Unclear which would come first in those cases.
@@ -196,28 +217,16 @@ So for example, if we wanted to look at action type "Increase Bail Amount" on da
 
 ```{r cache=TRUE}
 
-bail <- bail %>% arrange(docket_id, action_date, action_type_name, total_amount, registry_entry_code)
-
 # grouping the data such that we can see how many unique judges are associated with a particular action type and amount of bail within one action date per docket
-judge_grouped <- bail %>%
-  group_by(docket_id, action_date, action_type_name, total_amount) %>%
-  summarise(
-    n_judges = length(unique(judge))
-  )
 
-# getting the number of unique judges for each docket
-judge_grouped2 <- bail %>%
+joined_judge <- bail %>%
   group_by(docket_id) %>%
-  summarise(
-    n_judges2 = length(unique(judge))
-  )
-
-# merging these two things
-joined_judge <- left_join(judge_grouped, judge_grouped2, by = "docket_id")
-
-# creating a variable where we see if the number of unique judges for an action type is the same as the number of unique judges for the whole docket in general
-joined_judge$same <- ifelse(joined_judge$n_judges == joined_judge$n_judges2, 1, 0)
-
+  # getting the number of unique judges for each docket
+  mutate(n_judges2 = length(unique(judge))) %>% 
+  group_by(docket_id, action_date, action_type_name, total_amount, n_judges2) %>%
+  summarise(n_judges = length(unique(judge)), .groups = 'drop') %>% 
+  mutate(same = n_judges == n_judges2)
+  
 # it turns out that for all action types for each date within a docket, it has all the judges associated with the docket in general (because all the values are ones)
 summary(joined_judge$same)
 ```
@@ -338,26 +347,15 @@ I also put things order by degree, with grades without a degree last.
 An issue with this approach is that a grade without a degree may not actually be less severe than a grade with a degree.
 Also, I'm not sure what S and IC signify, so I'm not sure which would be more severe than the other.
 
-```{r }
-# attempting to order the factor levels by grade
-off_raw$grade <- factor(off_raw$grade,
-  levels = c("H1", "H2", "F1", "F2", "F3", "F", "M1", "M2", "M3", "M", "S1", "S2", "S3", "S", "IC"),
-  ordered = TRUE
-)
-
-# reversed the leveling because I accidentally inputted the grades backwards
-off_raw$grade <- fct_rev(off_raw$grade)
-```
-
 With just a preliminary look at the offense data, there's quite a few offenses with no grade.
 There's also quite a few offenses that have just a letter for the grade but no degree.
 
 Once again, the team looking at the offense data will probably have more plots and insights.
 
 ```{r }
-offense_grade <- group_by(off_raw, grade) %>% summarise(
-  n_offenses = length(grade)
-)
+offense_grade <- off_raw %>% 
+  group_by(grade) %>% 
+  summarise(n_offenses = length(grade))
 
 # plots a bar chart with the number of cases per offense grade
 offense_grade %>% 
@@ -366,7 +364,7 @@ offense_grade %>%
   geom_col() +
   labs(
     title = "Number of Offenses per Grade",
-    x = "Num Offenses", y = "Offense Grade", 
+    x = "Number of offenses", y = "Offense grade", 
     subtitle = "Some cases may have mutliple offenses"
   ) +
   coord_cartesian(expand = FALSE)
@@ -468,14 +466,3 @@ joined16_19 %>%
 
 ```
 
-Outstanding questions:
-
--   How should we choose initial bail when there are two different values for bail in the first action date?
--   If we choose to consider offense severity alongside bail, how should we deal with cases that have multiple offense grades?\
--   When plotting initial bail vs race, how should I use scale_y\_log10 when some bail amounts are zero?
--   What does a zero value for bail actually mean?
-
-Possible areas for future exploration
-
--   Trends for gender and age
--   Trends for judge actions (and how do we actually approach this?)
