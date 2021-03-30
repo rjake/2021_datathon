@@ -105,7 +105,7 @@ However, in some cases there were up to 3 different bail amounts in the same mon
 bail_amounts_per_docket <- bail %>%
   group_by(docket_id, action_date, action_type_name) %>%
   summarise(
-    n_bail_vals = length(unique(total_amount))
+    n_bail_vals = n_distinct(total_amount)
   )
 
 # Usually there is only one value for bail, but sometimes there's up to 3.
