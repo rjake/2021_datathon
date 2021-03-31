@@ -1,6 +1,6 @@
 ---
 title: "Bail Race"
-author: "Katrina Gutierrez, Trang Le"
+author: "Katrina Gutierrez, Trang Le, Jake Riley"
 date: "3/29/2021"
 output: github_document
 ---
