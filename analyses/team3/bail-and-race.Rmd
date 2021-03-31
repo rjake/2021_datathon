@@ -119,19 +119,23 @@ Exploring cases where initial bail is $0:
 
 ```{r cache=TRUE}
 
-#Looking at bail type for cases with $0 initial bail
-bail_zero <- bail %>% 
-  filter(total_amount == 0) %>% 
-  group_by(docket_id) %>% summarise(
+# Looking at bail type for cases with $0 initial bail
+bail_zero <- bail %>%
+  filter(total_amount == 0) %>%
+  group_by(docket_id) %>%
+  summarise(
     bail_type = first(type_name),
-  ) %>%group_by(bail_type) %>% summarise(
-    n = length(bail_type)) %>%
-  mutate(proportion = round( n / sum(n), 3)) 
+  ) %>%
+  group_by(bail_type) %>%
+  summarise(
+    n = length(bail_type)
+  ) %>%
+  mutate(proportion = round(n / sum(n), 3))
 head(bail_zero)
 
-#looking at NA values for bail type - they tend to occur when bail is denied 
-bail_zero_NA <- bail %>% 
-  filter(total_amount == 0 & is.na(type_name)) 
+# looking at NA values for bail type - they tend to occur when bail is denied
+bail_zero_NA <- bail %>%
+  filter(total_amount == 0 & is.na(type_name))
 
 unique(bail_zero_NA$action_type_name)
 
