@@ -110,7 +110,34 @@ bail <- bail_raw %>%
 levels(bail$action_type_name)
 ```
 
+Exploring cases where initial bail is $0:
+
+- Most of these cases (75%) were "ROR" (Release on Own Recognizance).  Defendants were released with no bail (there could be some conditions placed).
+- 22% of cases were "Nonmonetary" for the bail type.  This means nonmonetary conditions were applied to their release.  Nonmonetary conditions can also be applied on top of monetary bail.  
+- When there is an NA value for bail type this means the bail was denied.  All the action_type_name values were "Denied" when there was an NA for bail type.  
+
+```{r cache=TRUE}
+
+#Looking at bail type for cases with $0 initial bail
+bail_zero <- bail %>% 
+  filter(total_amount == 0) %>% 
+  group_by(docket_id) %>% summarise(
+    bail_type = first(type_name),
+  ) %>%group_by(bail_type) %>% summarise(
+    n = length(bail_type)) %>%
+  mutate(proportion = round( n / sum(n), 3)) 
+head(bail_zero)
+
+#looking at NA values for bail type - they tend to occur when bail is denied 
+bail_zero_NA <- bail %>% 
+  filter(total_amount == 0 & is.na(type_name)) 
+
+unique(bail_zero_NA$action_type_name)
+
+```
+
 The action date column uses the first day of the month, so it is difficult to determine the order of events that occurred within the same month.
+
 It is also difficult to determine what the initial bail is if there are multiple values for bail in the first month.
 
 To explore this issue, I first looked at how many bail amounts were associated with a given action date and action type for each docket.
