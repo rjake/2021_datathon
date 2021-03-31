@@ -48,23 +48,23 @@ Loading the full datasets (all years):
 -   def_raw: defendent docket data; each record is one defendent/docket_id; each docket_id has one defendent
 
 ```{r}
-larry_date <- as.Date('2018-01-02')
-start_period_1 <- larry_date - period(2, 'years')
-end_period_2 <- larry_date + period(2, 'years')
+larry_date <- as.Date("2018-01-02")
+start_period_1 <- larry_date - period(2, "years")
+end_period_2 <- larry_date + period(2, "years")
 dat_dir <- "csv"
 
 bail_raw <- vroom::vroom(file.path(dat_dir, "bail.csv"))
-off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv")) %>% 
+off_raw <- vroom::vroom(file.path(dat_dir, "offenses_dispositions.csv")) %>%
   mutate(
-    grade = 
-      grade %>%                              # forcats will default to alpha order
-      fct_relevel("H1", "H2", after = 0) %>%  # move these to the front
-      fct_relevel("IC", after = Inf)  %>%     # move this to the back
-      fct_rev() %>% 
-      factor(ordered = TRUE)
-  ) 
+    grade =
+      grade %>% # forcats will default to alpha order
+        fct_relevel("H1", "H2", after = 0) %>% # move these to the front
+        fct_relevel("IC", after = Inf) %>% # move this to the back
+        fct_rev() %>%
+        factor(ordered = TRUE)
+  )
 def_raw <- vroom::vroom(file.path(dat_dir, "defendant_docket_details.csv")) %>%
-  replace_na(list(race = 'Unknown/Unreported')) 
+  replace_na(list(race = "Unknown/Unreported"))
 ```
 
 ## Cleaning Bail Data
@@ -113,24 +113,32 @@ levels(bail$action_type_name)
 
 Exploring cases where initial bail is $0:
 
-- Most of these cases (75%) were "ROR" (Release on Own Recognizance).  Defendants were released with no bail (there could be some conditions placed).
-- 22% of cases were "Nonmonetary" for the bail type.  This means nonmonetary conditions were applied to their release.  Nonmonetary conditions can also be applied on top of monetary bail.  
-- When there is an NA value for bail type this means the bail was denied.  All the action_type_name values were "Denied" when there was an NA for bail type.  
+- Most of these cases (75%) were "ROR" (Release on Own Recognizance).
+Defendants were released with no bail (there could be some conditions placed).
+- 22% of cases were "Nonmonetary" for the bail type.
+This means nonmonetary conditions were applied to their release.
+Nonmonetary conditions can also be applied on top of monetary bail.  
+- When there is an NA value for bail type this means the bail was denied.
+All the action_type_name values were "Denied" when there was an NA for bail type.  
 
 ```{r cache=TRUE}
 
 # Looking at bail type for cases with $0 initial bail
 bail_zero <- bail %>%
+  mutate(period = case_when(
+    between(action_date, start_period_1, larry_date) ~ "before",
+    between(action_date, larry_date, end_period_2) ~ "after",
+    TRUE ~ NA_character_
+  )) %>%
   filter(total_amount == 0) %>%
-  group_by(docket_id) %>%
-  summarise(
-    bail_type = first(type_name),
-  ) %>%
-  group_by(bail_type) %>%
-  summarise(
-    n = length(bail_type)
-  ) %>%
-  mutate(proportion = round(n / sum(n), 3))
+  group_by(docket_id, period) %>%
+  summarise(bail_type = first(type_name), .groups = "drop") %>%
+  group_by(bail_type, period) %>%
+  summarise(n = length(bail_type), .groups = "drop") %>%
+  mutate(proportion = round(n / sum(n), 3)) %>%
+  drop_na(bail_type) %>%
+  filter(n > 10)
+
 head(bail_zero)
 
 # looking at NA values for bail type - they tend to occur when bail is denied
@@ -139,6 +147,11 @@ bail_zero_NA <- bail %>%
 
 unique(bail_zero_NA$action_type_name)
 
+bail_zero %>%
+  drop_na(period) %>%
+  ggplot(aes(x = n, y = bail_type, fill = period)) +
+  geom_col(position = "dodge") +
+  guides(fill = guide_legend(reverse = TRUE))
 ```
 
 The action date column uses the first day of the month, so it is difficult to determine the order of events that occurred within the same month.
@@ -153,12 +166,12 @@ However, in some cases there were up to 3 different bail amounts in the same mon
 # Grouped the bail data to see the number unique bail amounts associated with a given docket_id + action_date + action_type_name
 
 system.time(
-bail_amounts_per_docket <- bail %>%
-  group_by(docket_id, action_date, action_type_name) %>%
-  summarise(
-    n_bail_vals = length(unique(total_amount)),
-    .groups = 'drop'
-  )
+  bail_amounts_per_docket <- bail %>%
+    group_by(docket_id, action_date, action_type_name) %>%
+    summarise(
+      n_bail_vals = length(unique(total_amount)),
+      .groups = "drop"
+    )
 )
 
 # Usually there is only one value for bail, but sometimes there's up to 3.
@@ -192,7 +205,9 @@ Meaning, there are 188 docket_ids (0.054% of cases for all years) where there ar
 
 ```{r cache=TRUE}
 # filters the previous results for dockets with more than one value for bail in the first month
-test3 <- test2 %>% ungroup() %>% filter(first_bail_vals > 1)
+test3 <- test2 %>%
+  ungroup() %>%
+  filter(first_bail_vals > 1)
 
 # Creates a list of the docket ids fitting this criteria
 mult_inital_bail <- unique(test3$docket_id)
@@ -254,11 +269,11 @@ So for example, if we wanted to look at action type "Increase Bail Amount" on da
 joined_judge <- bail %>%
   group_by(docket_id) %>%
   # getting the number of unique judges for each docket
-  mutate(n_judges2 = length(unique(judge))) %>% 
+  mutate(n_judges2 = length(unique(judge))) %>%
   group_by(docket_id, action_date, action_type_name, total_amount, n_judges2) %>%
-  summarise(n_judges = length(unique(judge)), .groups = 'drop') %>% 
+  summarise(n_judges = length(unique(judge)), .groups = "drop") %>%
   mutate(same = n_judges == n_judges2)
-  
+
 # it turns out that for all action types for each date within a docket, it has all the judges associated with the docket in general (because all the values are ones)
 summary(joined_judge$same)
 ```
@@ -312,28 +327,37 @@ Regardless, most cases have either black or white defendants, so I chose to comp
 ```{r }
 def_race <- def_raw %>%
   mutate(period = case_when(
-    between(filing_date, start_period_1, larry_date) ~ 'before',
-    between(filing_date, larry_date, end_period_2) ~ 'after',
-    TRUE ~ NA_character_)) %>%
-  count(race, period, name = 'n_cases')
+    between(filing_date, start_period_1, larry_date) ~ "before",
+    between(filing_date, larry_date, end_period_2) ~ "after",
+    TRUE ~ NA_character_
+  )) %>%
+  count(race, period, name = "n_cases")
 
 # plots a bar chart with the number of cases per offense grade
-def_race %>% 
-  ggplot(aes(x = n_cases, fill = race,
-                     y = fct_reorder(race, n_cases))) +
+def_race %>%
+  ggplot(aes(
+    x = n_cases, fill = race,
+    y = fct_reorder(race, n_cases)
+  )) +
   geom_col() +
-  labs(title = "Number of Cases by Race", 
-       y = NULL, x = "Number of cases") +
+  labs(
+    title = "Number of Cases by Race",
+    y = NULL, x = "Number of cases"
+  ) +
   guides(fill = FALSE) +
   coord_cartesian(expand = FALSE)
 
-def_race %>% 
-  drop_na(period) %>% 
-  ggplot(aes(x = n_cases, fill = period,
-                     y = fct_reorder(race, n_cases))) +
-  geom_col(position = 'dodge') +
-  labs(title = "Number of Cases by Race & Period", 
-       y = NULL, x = "Number of cases") +
+def_race %>%
+  drop_na(period) %>%
+  ggplot(aes(
+    x = n_cases, fill = period,
+    y = fct_reorder(race, n_cases)
+  )) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Number of Cases by Race & Period",
+    y = NULL, x = "Number of cases"
+  ) +
   guides(fill = guide_legend(reverse = TRUE)) +
   coord_cartesian(expand = FALSE) +
   theme(legend.position = c(0.8, 0.2))
@@ -385,18 +409,20 @@ There's also quite a few offenses that have just a letter for the grade but no d
 Once again, the team looking at the offense data will probably have more plots and insights.
 
 ```{r }
-offense_grade <- off_raw %>% 
-  group_by(grade) %>% 
+offense_grade <- off_raw %>%
+  group_by(grade) %>%
   summarise(n_offenses = length(grade))
 
 # plots a bar chart with the number of cases per offense grade
-offense_grade %>% 
-  ggplot(aes(x = n_offenses,
-             y = fct_reorder(grade, n_offenses))) +
+offense_grade %>%
+  ggplot(aes(
+    x = n_offenses,
+    y = fct_reorder(grade, n_offenses)
+  )) +
   geom_col() +
   labs(
     title = "Number of Offenses per Grade",
-    x = "Number of offenses", y = "Offense grade", 
+    x = "Number of offenses", y = "Offense grade",
     subtitle = "Some cases may have mutliple offenses"
   ) +
   coord_cartesian(expand = FALSE)
@@ -407,7 +433,7 @@ Creating a dataset grouped by docket id with the each case's most serious offens
 ```{r cache=TRUE}
 # grouping the data, such that we will have one record per docket_id for offenses
 offense_grouped <- off_raw %>%
-  filter(!is.na(grade)) %>% 
+  filter(!is.na(grade)) %>%
   group_by(docket_id) %>%
   summarise(
     n_offenses = length(grade),
@@ -424,7 +450,7 @@ Upon merging, there's only missing values for most_ser_off.
 It makes sense that there are missing values for this variable because we saw that in the original offenses dataset; some cases did not have grades for offenses.
 
 ```{r }
-joined <- bail_grouped %>% 
+joined <- bail_grouped %>%
   left_join(def_subset, by = "docket_id") %>%
   left_join(offense_grouped, by = "docket_id")
 
@@ -440,9 +466,10 @@ I also added dummy variables for before and after.
 ```{r }
 joined16_19 <- joined %>%
   mutate(period = case_when(
-    between(date_first_bail, start_period_1, larry_date) ~ 'before',
-    between(date_first_bail, larry_date, end_period_2) ~ 'after',
-    TRUE ~ NA_character_)) %>%
+    between(date_first_bail, start_period_1, larry_date) ~ "before",
+    between(date_first_bail, larry_date, end_period_2) ~ "after",
+    TRUE ~ NA_character_
+  )) %>%
   filter(!is.na(period))
 ```
 
@@ -461,7 +488,7 @@ I added 1 to all the bail values to address this, but I'm wondering if there was
 
 ```{r }
 # box plot of initial bail by race - before and after - all offense types
-joined16_19 %>% 
+joined16_19 %>%
   # added 1 to first bail so we can use zero values when we log transform
   mutate(first_bail = first_bail + 1) %>%
   ggplot(aes(y = race, x = first_bail, fill = period)) +
@@ -473,7 +500,6 @@ joined16_19 %>%
   ) +
   guides(fill = guide_legend(reverse = TRUE)) +
   scale_x_log10(limits = c(1, NA), breaks = 10^(0:7))
-
 ```
 
 Data below filters for first degree felonies (F1) as the most serious offense grade.
@@ -483,7 +509,7 @@ Based off the way I ranked offense grades, F1 is among the more likely to be acc
 ```{r }
 # box plot of initial bail by race - before and after - offense grade F1 only
 
-joined16_19 %>% 
+joined16_19 %>%
   # added 1 to first bail so we can use zero values when we log transform
   mutate(first_bail = first_bail + 1) %>%
   filter(most_ser_off == "F1") %>%
@@ -497,6 +523,4 @@ joined16_19 %>%
   guides(fill = guide_legend(reverse = TRUE)) +
   scale_x_log10(limits = c(1, NA), breaks = 10^(0:7)) +
   NULL
-
 ```
-
