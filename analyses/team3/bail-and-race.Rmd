@@ -1,6 +1,6 @@
 ---
 title: "Bail Race"
-author: "Katrina Gutierrez"
+author: "Katrina Gutierrez, Trang Le"
 date: "3/29/2021"
 ---
 
