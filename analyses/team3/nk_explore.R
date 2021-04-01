@@ -7,7 +7,7 @@ off_16_17 <- read_csv("../../data/offenses_dispositions_2016_2017.csv")
 off_18_19 <- read_csv("../../data/offenses_dispositions_2018_2019.csv")
 table(off_18_19$grade)
 
-Amoxclav3357#### Q: Changes in disposition, min/max period, sentence type? ####
+#### Q: Changes in disposition, min/max period, sentence type? ####
 
 
 standarize_min_period <- function(dataset) {
