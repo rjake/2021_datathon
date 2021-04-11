@@ -1,19 +1,29 @@
 # Workspace ----
-
 library(tidyverse)
 library(glue)
 library(rvest)
 library(xml2)
 
-statutes <- read_csv("../../data/statutes_hierarchy.csv")
+raw_offenses <-
+  read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions.csv")
+
+statutes <- 
+  raw_offenses$statute_name %>%
+  unique() %>%
+  # head(100) %>%
+  str_remove_all("§§.*") %>% 
+  str_replace_all("[^[A-Z0-9\\-\\.]]+", "_") %>% 
+  str_remove("_$") %>% 
+  print()
 
 titles <-
   statutes %>% 
-  filter(jurisdiction == "PA", title > 0) %>% 
-  pull(title) %>% 
+  discard(str_detect, "^(CO|LO|0)") %>%
+  str_extract("^[^_]*") %>% 
   unique() %>% 
   str_pad(width = 2, pad = "0") %>% 
-  sort()
+  sort() %>% 
+  print()
 
 # Get URL Contents ----
 # url <- "https://www.legis.state.pa.us/cfdocs/legis/LI/consCheck.cfm?txtType=HTM"
@@ -46,6 +56,22 @@ all_title_contents <- map_dfr(titles, get_url_text)
 
 # missing titles ----
 titles %>% subset(!. %in% unique(all_title_contents$title_id))
+
+# find count of missing
+table(
+  str_pad(str_extract(raw_offenses$statute_name, "^[^ ]*"), 2, "l", "0")
+  %in% 
+    c(
+        10 # charities
+      , 43 # labor
+      , 47 # liquor
+      , 50 # mental health
+      , 52 # mines and mining
+      , 73 # townships
+      , 77 # workmen's comp
+  )
+)
+
 
 #' @examples
 #' find_subsection(df = all_title_contents, "part", "level_1")
@@ -87,9 +113,9 @@ find_subsection <- function(df, string, new, prior = NULL) {
 #' fill_left(6, all_levels)
 fill_left <- function(i, df) {
   use_df <- df
-  which_values <- (df[[i]] == "-")
-  use_df[[i]] <- ifelse(which_values, df[[i + 2]], df[[i]])
-  use_df[[i + 2]] <- ifelse(which_values, "-", df[[i + 2]])
+  missing_values <- (df[[i]] == "-")
+  use_df[[i]] <- ifelse(missing_values, df[[i + 2]], df[[i]])
+  use_df[[i + 2]] <- ifelse(missing_values, "-", df[[i + 2]])
   
   use_df
 }
