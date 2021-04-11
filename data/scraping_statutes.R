@@ -156,7 +156,8 @@ final_statutes <-
     statute = glue("{title_id}_{section_id}")
   ) %>% 
   select(-text) %>% 
-  relocate(statute, .before = title_id) 
+  relocate(statute, .before = title_id) %>% 
+  distinct()
 
 final_statutes %>% filter(title_id == "16")
 
