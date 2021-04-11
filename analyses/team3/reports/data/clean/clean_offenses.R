@@ -49,11 +49,17 @@
 library(tidyverse)
 library(lubridate)
 
-raw_offenses <- 
-  read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions.csv")
+# raw_offenses <- 
+#   read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions.csv")
+# 
+# raw_dockets <- 
+#   read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_details.csv")
+# 
+# saveRDS(raw_offenses, "reports/data/raw/offenses_dispositions.Rds")
+# saveRDS(raw_dockets, "reports/data/raw/defendant_docket_details.Rds")
 
-raw_dockets <- 
-  read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/defendant_docket_details.csv")
+raw_offenses <- readRDS("reports/data/raw/offenses_dispositions_v3.Rds")
+raw_dockets <- readRDS("reports/data/raw/defendant_docket_details.Rds")
 
 statutes <- 
   read_csv("../../data/statutes_hierarchy.csv") %>% 
