@@ -55,7 +55,8 @@ get_url_text <- function(title_id) {
 all_title_contents <- map_dfr(titles, get_url_text)
 
 # missing titles ----
-titles %>% subset(!. %in% unique(all_title_contents$title_id))
+titles %>% 
+  subset(!. %in% unique(all_title_contents$title_id))
 
 # find count of missing
 table(
@@ -159,4 +160,4 @@ final_statutes <-
 
 final_statutes %>% filter(title_id == "16")
 
-write_csv(final_statutes, "../../data/statutes_hierarchy_download.csv")
+write_csv(final_statutes, "data/statutes_hierarchy.csv")
