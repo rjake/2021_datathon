@@ -39,13 +39,9 @@
 #      * [ ] # 
 #      * [ ] # 
 
-# ------------------------------------------------------------------------------
-  
-
-
-
-
-
+        
+        
+# workspace ----
 library(tidyverse)
 library(lubridate)
 
@@ -58,13 +54,9 @@ library(lubridate)
 # saveRDS(raw_offenses, "reports/data/raw/offenses_dispositions.Rds")
 # saveRDS(raw_dockets, "reports/data/raw/defendant_docket_details.Rds")
 
-raw_offenses <- readRDS("reports/data/raw/offenses_dispositions_v3.Rds")
+raw_offenses <- readRDS("reports/data/raw/offenses_dispositions.Rds")
 raw_dockets <- readRDS("reports/data/raw/defendant_docket_details.Rds")
-
-statutes <- 
-  read_csv("../../data/statutes_hierarchy.csv") %>% 
-  select(-statute_name) %>% 
-  distinct()
+statutes <- read_csv("../../data/statute_hierarchy.csv")
 
 
 raw_offenses %>% 
@@ -98,8 +90,47 @@ raw_offenses %>%
 
 
 
+prep_offenses <-
+  raw_offenses %>%
+  # slice(1:10000) %>% 
+  transmute(
+    docket_id,
+    statute = statute_name,
+    description,
+    #sequence_number,
+    grade,
+    judge_name = paste(
+      # disposing_authority__title,
+      disposing_authority__first_name, 
+      # disposing_authority__middle_name,
+      disposing_authority__last_name
+    ),
+    disposition,
+    min_period,
+    sentence_type,
+    credit
+  ) %>%
+  mutate(
+    statute = 
+      statute %>% 
+      str_remove_all(" §§.*") %>% 
+      str_replace_all("[^[A-Z0-9\\-\\.]]+", "_") %>% 
+      str_remove("_$"),
+    min_days = extract_days(min_period)
+  ) %>% 
+  # filter(coalesce(sentence_type, "") != "No Further Penalty") %>% 
+  print()
+
+
 raw_offenses %>% 
-  filter(str_detect(description, "Brib")) %>%
+  filter(
+    str_detect(statute_name, "62.*14"),
+    str_detect(description, "Brib")
+    ) %>%
+  count(statute) %>% 
+  left_join(statutes)
+
+  
   left_join(raw_dockets %>% select(docket_id, filing_date)) %>% 
   group_by(statute_description, description) %>%
   summarise(
@@ -108,27 +139,15 @@ raw_offenses %>%
     max = max(filing_date)
   ) %>% 
   ungroup()
+
+
   
-  count(description, statute_description) 
-
 raw_offenses %>% 
-  left_join(raw_dockets %>% select(docket_id, filing_date)) %>% 
-  filter(filing_date > "2016-01-01") %>% 
-  select(ends_with("description")) %>% 
-  distinct()
-  summarise_all(n_distinct) %>% 
-  gather()
+  filter(docket_id == 420) %>% view()
+  distinct(docket_id, disposing_authority__document_name) %>%
+  drop_na() %>% 
+  count(docket_id, sort = TRUE)
 
-
-offenses <-
-  raw_offenses %>% 
-  filter(coalesce(sentence_type, "") != "No Further Penalty")
-
-
-select(
-  -description,
-  -c(disposing_authority__first_name:disposing_authority__middle_name)
-)
 
 offenses %>% 
   slice(1:1000) %>% 
