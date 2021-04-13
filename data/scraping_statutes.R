@@ -44,7 +44,7 @@ get_url_text <- function(title_id) {
       title_contents %>%
       html_nodes("p") %>%
       html_text() %>%
-      head(200) %>%
+#      head(200) %>%
       trimws() %>%
       tolower()
   ) %>%
@@ -141,6 +141,7 @@ all_levels <-
 # * levels_adjusted ----
 levels_adjusted <- all_levels
 level_cols <- which(str_detect(names(levels_adjusted), "level_[1-3]")) 
+
 for (i in (level_cols)) {
   levels_adjusted <<- fill_left(i, levels_adjusted)
 }
@@ -161,4 +162,4 @@ final_statutes <-
 
 final_statutes %>% filter(title_id == "16")
 
-write_csv(final_statutes, "data/statutes_hierarchy.csv")
+write_csv(final_statutes, "data/statute_hierarchy.csv")
