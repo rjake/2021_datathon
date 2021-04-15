@@ -5,3 +5,4 @@
 analyses/team3/reports/data/raw/defendant_docket_details.Rds
 analyses/team3/reports/data/raw/offenses_dispositions.Rds
 analyses/team3/reports/data/raw/bail.Rds
+analyses/team3/reports/data/clean/docket_charges.Rds
