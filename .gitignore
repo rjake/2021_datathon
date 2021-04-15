@@ -10,3 +10,4 @@ data/defendant_docket_details_2016_2017.csv
 data/defendant_docket_details_2018_2019.csv
 data/offenses_dispositions_2016_2017.csv
 data/offenses_dispositions_2018_2019.csv
+*.Rds
