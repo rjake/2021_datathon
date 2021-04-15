@@ -48,7 +48,15 @@ get_url_text <- function(title_id) {
       trimws() %>%
       tolower()
   ) %>%
-    filter(nchar(text) > 1)
+    filter(nchar(text) > 1) %>%
+    mutate(
+      title_text =
+        case_when(
+          row_number() > 5 ~ "",
+          str_detect(text, "^title \\d+$") ~ lead(text),
+          TRUE ~ "") %>%
+        max()
+    )
 }
 
 # * all_title_contents ----
@@ -128,8 +136,6 @@ fill_left <- function(i, df) {
 # * all_levels ----
 all_levels <- 
   all_title_contents %>% 
-  mutate(title_text = ifelse(str_detect(lag(text), "^title "), text, NA)) %>% 
-  fill(title_text) %>% 
   find_subsection("part", "level_1", NULL) %>%
   find_subsection(string = "article", new = "level_2", prior = "level_1_id") %>% 
   find_subsection(string = "chapter", new = "level_3", prior = "level_2_id") %>% 
