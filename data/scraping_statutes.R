@@ -172,6 +172,7 @@ final_statutes <-
   ) %>% 
   select(-text) %>% 
   relocate(statute, .before = title_id) %>% 
-  distinct()
+  distinct() %>% 
+  full_join(title_ids)
 
 write_csv(final_statutes, "data/statute_hierarchy.csv")
