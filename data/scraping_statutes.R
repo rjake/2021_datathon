@@ -143,7 +143,7 @@ levels_adjusted <- all_levels
 level_cols <- which(str_detect(names(levels_adjusted), "level_[1-3]")) 
 
 for (i in (level_cols)) {
-  levels_adjusted <<- fill_left(i, levels_adjusted)
+  levels_adjusted <- fill_left(i, levels_adjusted)
 }
 
 # * final_statutes ----
