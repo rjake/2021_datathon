@@ -5,7 +5,7 @@ library(rvest)
 library(xml2)
 
 raw_offenses <-
-  read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions.csv")
+  read_csv("https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions_v3.csv")
 
 statutes <- 
   raw_offenses$statute_name %>%
