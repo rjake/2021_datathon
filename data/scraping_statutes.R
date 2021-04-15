@@ -160,6 +160,4 @@ final_statutes <-
   relocate(statute, .before = title_id) %>% 
   distinct()
 
-final_statutes %>% filter(title_id == "16")
-
 write_csv(final_statutes, "data/statute_hierarchy.csv")
