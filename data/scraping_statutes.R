@@ -60,6 +60,8 @@ get_url_text <- function(title_id) {
 #      head(200) %>%
       trimws() %>%
       tolower()
+  ) %>% 
+  filter(nchar(text) > 1)
 }
 
 # * all_title_contents ----
