@@ -3,16 +3,18 @@
 library(tidyverse)
 
 #### load data ####
-off_16_17 <- read_csv("../../data/offenses_dispositions_2016_2017.csv")
-off_18_19 <- read_csv("../../data/offenses_dispositions_2018_2019.csv")
+off_16_17 <- read_csv("../../data/offenses_dispositions_v2_2016_2017.csv")
+off_18_19 <- read_csv("../../data/offenses_dispositions_v2_2018_2019.csv")
 table(off_18_19$grade)
+
+
 
 #### Q: Changes in disposition, min/max period, sentence type? ####
 
 
 standarize_min_period <- function(dataset) {
   
-  dataset <- off_18_19
+  #dataset <- off_18_19
   dataset.filt.split <- dataset %>%
     drop_na(min_period) %>%
     separate(min_period,c("min_period_num","min_period_unit"),sep = " ")
