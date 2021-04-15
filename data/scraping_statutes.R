@@ -84,8 +84,12 @@ find_subsection <- function(df, string, new, prior = NULL) {
     tibble("{new}" := str_extract(x, find_new)) %>% 
     #fill(1) %>% 
     separate(
-      new, 
-      into = paste(new, c("id", "text"), sep = "_"), 
+      new,
+      into =
+        glue(
+          "{new}_{col_names}",
+          col_names = c("id", "text")
+        ),
       sep = "\\. ",
       remove = TRUE
     ) %>% 
