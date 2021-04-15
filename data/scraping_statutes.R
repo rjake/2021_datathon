@@ -161,7 +161,7 @@ for (i in (level_cols)) {
 }
 
 # * final_statutes ----
-final_statutes <-
+statute_hierarchy <-
   levels_adjusted %>% 
   mutate_all(trimws) %>% 
   filter(str_detect(text, "^§")) %>%
@@ -175,4 +175,4 @@ final_statutes <-
   distinct() %>% 
   full_join(title_ids)
 
-write_csv(final_statutes, "data/statute_hierarchy.csv")
+write_csv(statute_hierarchy, "data/statute_hierarchy.csv")
