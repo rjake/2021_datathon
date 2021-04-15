@@ -61,7 +61,7 @@ get_url_text <- function(title_id) {
       trimws() %>%
       tolower()
   ) %>% 
-  filter(nchar(text) > 1)
+    filter(nchar(text) > 1)
 }
 
 # * all_title_contents ----
@@ -141,8 +141,8 @@ fill_left <- function(i, df) {
 # * all_levels ----
 all_levels <- 
   all_title_contents %>% 
-  find_subsection("part", "level_1", NULL) %>%
   left_join(title_ids) %>% 
+  find_subsection("part", "level_1", NULL) %>%
   find_subsection(string = "article", new = "level_2", prior = "level_1_id") %>% 
   find_subsection(string = "chapter", new = "level_3", prior = "level_2_id") %>% 
   find_subsection(string = "subchapter", new = "level_4", prior = "level_3_id") %>% 
