@@ -153,20 +153,20 @@ def_disp <- def_raw %>%
 
 def_disp %>%
   drop_na(period_bef_aft) %>%
+  filter(sentence_type != 'IPP') %>% 
   ggplot(aes(fill = period_bef_aft, x = max_period_days, y = grade)) +
-  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.1) +
+  geom_boxplot(outlier.size = 0.2, outlier.alpha = 0.1) +
   scale_x_sqrt(breaks = c(100, 1000, 5000, 10000, 20000)) +
   labs(fill = NULL, y = "Offense grade", x = "Max sentence (days)") +
   theme(
-    legend.position = c(0.8, 0.2),
+    legend.position = c(0.95, 0.1),
     panel.grid.major.y = element_blank()
   ) +
   guides(fill = guide_legend(reverse = TRUE)) +
   rcartocolor::scale_fill_carto_d() +
-  gghighlight::gghighlight(!grade %in% c("M1", "M3", "F", "S", "IC"))
+  facet_grid(cols = vars(sentence_type), scales = 'free') +
+  # gghighlight::gghighlight(!grade %in% c("M1", "M3", "F", "S", "IC")) +
+  NULL
 ```
-
-    ## Warning: Tried to calculate with group_by(), but the calculation failed.
-    ## Falling back to ungrouped filter operation...
 
 ![](max-sentencing_files/figure-gfm/max-sentence-trend-1.png)<!-- -->
