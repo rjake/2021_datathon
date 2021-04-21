@@ -163,6 +163,14 @@ def_disp %>%
     panel.grid.major.y = element_blank()
   ) +
   guides(fill = guide_legend(reverse = TRUE)) +
+  geom_segment(
+    data = . %>% filter(sentence_type == 'Probation'),
+    mapping = aes(x = 365, xend = 365, y = 'M', yend = 'M3'),
+               color = '#99C945', size = 2) +
+  geom_segment(
+    data = . %>% filter(sentence_type == 'Probation'),
+    mapping = aes(x = 3*365, xend = 3*365, y = 'F', yend = 'F3'),
+               color = '#99C945', size = 2) +
   rcartocolor::scale_fill_carto_d() +
   facet_grid(cols = vars(sentence_type), scales = 'free') +
   # gghighlight::gghighlight(!grade %in% c("M1", "M3", "F", "S", "IC")) +
