@@ -1,0 +1,312 @@
+---
+title: "nk_explore.Rmd"
+author: "Nathan Kendsersky"
+date: "4/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Load Packages and Functions
+
+```{r}
+# packages to load
+library(tidyverse)
+library(skimr)
+library(ggsci)
+library(ggpubr)
+library(cowplot)
+library(reshape2)
+
+# functions to load
+`%notin%` <- Negate(`%in%`)
+```
+
+### Load Data
+
+```{r}
+docket_charges <- readRDS("reports/data/clean/docket_charges.Rds")
+docket_charges$timeframe <- factor(docket_charges$timeframe, levels = c("pre-Krasner","post-Krasner"))
+```
+
+
+### Analyses of Interest
+
+#### Disposition Categories
+[X] Number of Dockets pre/post Krasner, separated by race
+[X] Disposition Category Representation (%) pre/post Krasner, separated by race
+
+Restrict Analysis to disposition categories with >1000 dockets.
+```{r}
+
+# deteremine top disposition categories
+dispo_top <- docket_charges %>% 
+  group_by(disposition) %>%
+  count(name = "Number") %>%
+  dplyr::arrange(desc(Number)) %>%
+  dplyr::filter(!is.na(x = disposition)) %>%
+  dplyr::filter(Number > 1000) %>%
+  dplyr::pull(disposition)
+
+# subset docket_charges by top disposition categories
+displo_plot_df <- docket_charges %>% 
+  dplyr::filter(disposition %in% dispo_top)
+
+```
+
+Evaluate race in disposition category subset.
+```{r}
+
+ggplot(displo_plot_df,aes(x=race,fill=timeframe)) +
+  geom_bar(position="dodge",color="black") +
+  geom_text(stat='count', aes(label=..count..), vjust=-1, position = position_dodge(0.9), size=3) + 
+  ylim(0,45000) +
+  theme_bw() + scale_fill_nejm() +
+  labs(title = "Number of Dockets by Race (pre/post Krasner)",
+       fill = "Office") +
+  xlab("Race") + ylab("Number of Dockets") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12))
+
+```
+In all but unknown/unreported race, larger proportion of dockets with a negotiated guilty plea.
+```{r}
+
+ggplot(displo_plot_df,aes(x=timeframe,fill=disposition)) +
+  geom_bar(position="fill",color="black") +
+  theme_bw() + scale_fill_nejm() + facet_wrap(~race, scales = "free") +
+  labs(title = "Disposition Categories by Race (pre/post Krasner)", fill = "Disposition") + xlab("") + ylab("Proportion") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12))
+
+```
+
+
+#### Statute Categories
+[X] Statute Category Representation (%) pre/post Krasner
+[X] Minimum Sentencing for each Statute (confinement) pre/post Krasner
+
+Evaluating by raw numbers of dockets per statute category.
+```{r}
+
+# deteremine number of dockets with given statute; difference pre vs. post; fold change pre vs. post
+statute_count <- docket_charges %>% 
+  count(timeframe,statute,title_text,name="Number") %>%
+  spread(timeframe, Number) %>%  
+  drop_na() %>%
+  mutate(Number_Diff = `post-Krasner` - `pre-Krasner`,
+         Number_FC = `post-Krasner` / `pre-Krasner`) %>%
+  mutate(Change = factor(ifelse(Number_Diff > 0 , "Increase","Decrease"),
+                         levels = c("Increase","Decrease")))
+
+# identity most different statute categories (pre vs. post)
+statute_num_top <- statute_count %>%
+  arrange(desc(Number_Diff)) %>%
+  dplyr::filter(Number_Diff > 1000) %>%
+  dplyr::pull(statute)
+statute_num_bottom <- statute_count %>%
+  arrange((Number_Diff)) %>%
+  dplyr::filter(Number_Diff < -500) %>%
+  dplyr::pull(statute)
+
+```
+
+Plotting by raw numbers of dockets per statute category.
+```{r}
+
+# plot group bar (pre and post) by number of dockets per statute
+## need to change from "wide" to "long" format
+ggplot(statute_count %>% 
+         dplyr::filter(statute %in% c(statute_num_top,statute_num_bottom)) %>%
+         pivot_longer(cols = c("pre-Krasner","post-Krasner"),names_to="Period",
+                      values_to="Number"),
+       aes(x=statute,y=Number,fill=Period))+ 
+  geom_bar(position="dodge",stat="identity",color="black") +
+  theme_bw() + scale_fill_nejm() + facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Number of Dockets per Statute", fill = "Timeframe") + 
+  xlab("Statute") + ylab("Number of Dockets") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+# plot difference in number of dockets per statute (pre vs. post)
+ggplot(statute_count %>% 
+         dplyr::filter(statute %in% c(statute_num_top,statute_num_bottom)),
+       aes(reorder(statute, -Number_Diff),Number_Diff,fill=title_text)) +
+  geom_bar(stat="identity", color="black") + theme_bw() + scale_fill_nejm() +
+  facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Change in Number of Dockets per Statute", 
+       fill = "Statute Title") + 
+  xlab("Statute") + ylab("Change in Number of Dockets") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+# plot fold change in number of dockets per statute (pre vs. post)
+ggplot(statute_count %>% 
+         dplyr::filter(statute %in% c(statute_num_top,statute_num_bottom)),
+       aes(reorder(statute, -Number_Diff),Number_FC,fill=title_text)) +
+  geom_bar(stat="identity", color="black") + geom_abline(slope = 0,intercept = 1) +
+  theme_bw() + scale_fill_nejm() +
+  facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Fold Change in Number of Dockets per Statute", 
+       fill = "Statute Title") + 
+  xlab("Statute") + ylab("Fold Change in Number of Dockets") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+```
+
+Evaluating by percentage of dockets per statute category.
+```{r}
+# deteremine number of dockets with given statute; difference pre vs. post; fold change pre vs. post
+statute_percent <- docket_charges %>% 
+  count(timeframe,statute,title_text,name="Number") %>%
+  mutate(Percent = (Number/sum(Number)) * 100) %>%
+  dplyr::select(timeframe, statute, title_text, Percent) %>%
+  spread(timeframe, Percent) %>%  
+  drop_na() %>%
+  mutate(Percent_Diff = `post-Krasner` - `pre-Krasner`,
+         Percent_FC = `post-Krasner` / `pre-Krasner`) %>%
+  mutate(Change = factor(ifelse(Percent_Diff > 0 , "Increase","Decrease"),
+                         levels = c("Increase","Decrease")))
+
+# identity most different statute categories (pre vs. post)
+statute_percent_top <- statute_percent %>%
+  arrange(desc(Percent_Diff)) %>%
+  dplyr::filter(Percent_Diff > 0.2) %>%
+  dplyr::pull(statute)
+statute_percent_bottom <- statute_percent %>%
+  arrange((Percent_Diff)) %>%
+  dplyr::filter(Percent_Diff < -.2) %>%
+  dplyr::pull(statute)
+
+
+
+```
+Plotting by percentage of dockets per statute category.
+```{r}
+# plot group bar (pre and post) by number of dockets per statute
+## need to change from "wide" to "long" format
+ggplot(statute_percent %>% 
+         dplyr::filter(statute %in% c(statute_percent_top,statute_percent_bottom)) %>%
+         pivot_longer(cols = c("pre-Krasner","post-Krasner"),names_to="Period",
+                      values_to="Percent"),
+       aes(x=statute,y=Percent,fill=Period))+ 
+  geom_bar(position="dodge",stat="identity",color="black") +
+  theme_bw() + scale_fill_nejm() + facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Percentage of Dockets per Statute", fill = "Timeframe") + 
+  xlab("Statute") + ylab("Percentage of Dockets (%)") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+# plot difference in number of dockets per statute (pre vs. post)
+ggplot(statute_percent %>% 
+         dplyr::filter(statute %in% c(statute_percent_top,statute_percent_bottom)),
+       aes(reorder(statute, -Percent_Diff),Percent_Diff,fill=title_text)) +
+  geom_bar(stat="identity", color="black") + theme_bw() + scale_fill_nejm() +
+  facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Change in Percentage of Dockets per Statute", 
+       fill = "Statute Title") + 
+  xlab("Statute") + ylab("Change in Percentage of Dockets (%)") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+# plot fold change in number of dockets per statute (pre vs. post)
+ggplot(statute_percent %>% 
+         dplyr::filter(statute %in% c(statute_percent_top,statute_percent_bottom)),
+       aes(reorder(statute, -Percent_Diff),Percent_FC,fill=title_text)) +
+  geom_bar(stat="identity", color="black") + geom_abline(slope = 0,intercept = 1) +
+  theme_bw() + scale_fill_nejm() +
+  facet_grid(~Change, scales = "free", space = "free") +
+  labs(title = "Fold Change in Percentage of Dockets per Statute", 
+       fill = "Statute Title") + 
+  xlab("Statute") + ylab("Fold Change in Percentage of Dockets") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+```
+
+Change in Minimum Sentencing Across Statutes
+```{r}
+
+# filter for confinement, add increase/decrease category based on number
+docket_confine <- docket_charges %>%
+  dplyr::filter(sentence_type == "Confinement") %>%
+  mutate(Change = factor(ifelse(statute %in% statute_num_top, "Increase",
+                                ifelse(statute %in% statute_num_bottom, "Decrease", "Unknown")),
+                         levels = c("Increase","Decrease","Unknown")))
+
+# plot log(min_bail) vs. top/bottom statutes
+ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
+               aes(x=statute,y=log(min_bail),fill=timeframe)) +
+  geom_boxplot(position = "dodge") + #geom_violin(color="black") +
+  facet_grid(~Change,scales = "free",space="free") +
+  labs(title = "Minimum Bail for Statute Categories", fill = "Timeframe") +
+  xlab("Statute") + ylab("log(minimum bail)") +
+  theme_bw() + scale_fill_nejm() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+# plot log(min_sentencing) vs. top/bottom statutes
+ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
+               aes(x=statute,y=log(min_sentencing),fill=timeframe)) +
+  geom_boxplot(position = "dodge") + #geom_violin(color="black") +
+  facet_grid(~Change,scales = "free",space="free") +
+  labs(title = "Minimum Sentencing for Statute Categories", fill = "Timeframe") +
+  xlab("Statute") + ylab("log(minimum sentencing, days)") +
+  theme_bw() + scale_fill_nejm() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1,size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.position = "bottom")
+
+```
+
+
+#### Bail
+[X] Minimum bail ($) pre/post Krasner, separated by race and grade
+
+```{r}
+
+# plotting felonies,by race, before and after Krasner
+ggplot(docket_charges %>%
+                 dplyr::filter(race %in% c("Black","White"),grepl("F",grade)),
+               aes(x=timeframe,y=log(min_bail),fill=race)) +
+  geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
+  facet_wrap(~grade,scales = "free") +
+  theme_bw() + scale_fill_manual(values=c("darkgray","white"))
+
+# plotting misdemeanor, by race, before and after Krasner
+ggplot(docket_charges %>%
+                 dplyr::filter(race %in% c("Black","White"),grepl("M",grade)),
+               aes(x=timeframe,y=log(min_bail),fill=race)) +
+  geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
+  facet_wrap(~grade,scales = "free") +
+  theme_bw() + scale_fill_manual(values=c("darkgray","white"))
+
+# plotting all grades, by race, before and after Krasner
+ggplot(docket_charges %>%
+                 dplyr::filter(race %in% c("Black","White")),
+               aes(x=timeframe,y=log(min_bail),fill=race)) +
+  geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
+  facet_wrap(~grade,scales = "free") +
+  theme_bw() + scale_fill_manual(values=c("darkgray","white"))
+
+```
