@@ -1,0 +1,288 @@
+---
+title: "explore_docket"
+output: github_document
+---
+
+[google slide](https://docs.google.com/presentation/d/1FM0AUowLZxz42w7CXzi5D0KIjxfEeQarjp_S7hB2Ako/edit)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# load packages and data
+```{r dependency, echo=T, warning=F, message=F}
+library(tidyverse)
+library(lubridate)
+load("ddt_tables.Rdata")
+rm(ddt_dates, ddt_judicial_districts)
+```
+
+
+# Defendent trends
+
+```{r}
+range(defendent_info$arrest_age_by_year, na.rm=T)
+
+tmp = defendent_info %>% 
+  filter(!is.na(arrest_age_by_year), arrest_age_by_year >= 10, arrest_age_by_year <= 90)
+
+tmp = tmp %>% 
+  mutate(age_range = cut(tmp$arrest_age_by_year, seq(10,90,10))) %>% 
+  mutate(race = case_when(
+    is.na(race) ~ "Unknown/Unreported",
+    race=="Asian" ~ "Asian/Pacific Islander",
+    T ~ race
+  )) %>% 
+  filter(!is.na(gender))
+
+tmp = tmp %>% 
+  mutate(arrest_year=year(arrest_date))
+```
+
+## race - gender
+
+```{r}
+p <- tmp %>% 
+  mutate(race = case_when(
+      race %in% c("Native American/Alaskan Native", "Bi-Racial") ~ "Other",
+    T ~ race
+    )) %>% 
+  group_by(gender, race) %>% 
+  count() %>% 
+ggplot(aes(x=reorder(race,n), y=n)) +
+  geom_col(aes(fill=gender), position=position_dodge(0.9)) +
+  geom_text(aes(label=n, group=gender), position=position_dodge(0.9), hjust=-0.05) +
+  coord_flip() +
+  ylab("number of docket cases") +
+  xlab("race") + ylim(c(0,2.5e5)) +
+  ggtitle("Defendent race and gender trends") +
+  theme_bw()
+
+p
+# ggsave("defendent_gender_race.png", p, width=10)
+```
+
+
+##  age distribution for race and gender
+
+```{r}
+# p <- tmp %>% 
+#   mutate(race = case_when(
+#       race %in% c("Native American/Alaskan Native", "Bi-Racial") ~ "Other",
+#     T ~ race
+#     )) %>% 
+#   group_by(gender, age_range) %>% 
+#   count() %>% 
+# ggplot(aes(x=age_range, y=n)) +
+#   geom_point(aes(color=gender)) +
+#   geom_line(aes(group=gender, color=gender)) +
+#   ylab("number of docket cases") +
+#   xlab("age by arrest (year)") + 
+#   ggtitle("Defendent arrest age and gender trends") +
+#   theme_bw() +
+#   theme(legend.position="bottom")
+
+p <- tmp %>% 
+  ggplot(aes(x=arrest_age_by_year)) +
+  geom_density(aes(fill=gender, color=gender), alpha=0.2) +
+  xlab("age by arrest (year)") + 
+  ggtitle("Defendent arrest age and gender trends") +
+  theme_bw() +
+  theme(legend.position="bottom")
+p
+# ggsave("defendent_age_by_gender.png", p)
+```
+
+```{r}
+# p <- tmp %>% 
+#   mutate(race = case_when(
+#       race %in% c("Native American/Alaskan Native", "Bi-Racial") ~ "Other",
+#     T ~ race
+#     )) %>% 
+#   filter(race != "Unknown/Unreported") %>% 
+#   count(race, age_range, name="n") %>% 
+#   left_join(
+#     tmp %>% 
+#   mutate(race = case_when(
+#       race %in% c("Native American/Alaskan Native", "Bi-Racial") ~ "Other",
+#     T ~ race
+#     )) %>% 
+#   filter(race != "Unknown/Unreported") %>% 
+#   count(race, name="total")
+#   ) %>% 
+#   mutate(ratio = n/total) %>% 
+# ggplot(aes(x=age_range, y=ratio)) +
+#   geom_point(aes(color=race)) +
+#   geom_line(aes(group=race, color=race)) +
+#   ylab("percentage of docket cases in given race") +
+#   xlab("age by arrest (year)") + 
+#   ggtitle("Defendent arrest age and race trends") +
+#   theme_bw() +
+#   theme(legend.position="bottom")
+
+
+p <- tmp %>% 
+  mutate(race = case_when(
+      race %in% c("Native American/Alaskan Native", "Bi-Racial") ~ "Other",
+    T ~ race
+    )) %>% 
+  filter(race != "Unknown/Unreported") %>% 
+  ggplot(aes(x=arrest_age_by_year)) +
+  geom_density(aes(color=race, fill=race), alpha=0.2) +
+  xlab("age by arrest (year)") + 
+  ggtitle("Defendent arrest age and race trends") +
+  theme_bw() +
+  theme(legend.position="bottom")
+
+p
+# ggsave("defendent_age_by_race.png", p)
+```
+
+## age trend across year for gender
+
+In last 20 years. 
+
+```{r}
+lm_m = lm(arrest_age_by_year ~ arrest_year, data = tmp %>% filter(arrest_year >= 2000) )
+summary(lm_m)
+```
+
+```{r}
+lm_m = lm(arrest_age_by_year ~ arrest_year + gender, data = tmp %>% filter(arrest_year >= 2000) )
+summary(lm_m)
+```
+
+```{r}
+lm_m = lm(arrest_age_by_year ~ arrest_year + gender + arrest_year * gender, data = tmp %>% filter(arrest_year >= 2000) )
+summary(lm_m)
+```
+
+```{r}
+p <- tmp %>% 
+  filter(arrest_year >= 2000) %>% 
+ggplot(aes(x=arrest_year, y=arrest_age_by_year)) +
+  geom_smooth(aes(group=gender, color=gender)) +
+  theme_bw() +
+  xlab("arrest year") +
+  ylab("defendant age by arrest") +
+  theme(legend.position = "bottom") +
+  ggtitle("defendent age by year for different gender")
+
+p
+# ggsave("defendant_age_by_year.png", p, width=10)
+```
+
+## age - year for race
+
+```{r}
+
+lm_m = lm(
+  arrest_age_by_year ~ arrest_year + race, 
+  data = tmp %>% 
+    filter(arrest_year >= 2000) %>% 
+    filter(race %in% c( "Black", "White","Asian/Pacific Islander")) %>% 
+    mutate(race = factor(race, levels = c("Black", "White", "Asian/Pacific Islander"))) 
+  )
+summary(lm_m)
+```
+
+```{r}
+p <- tmp %>% filter(arrest_year >= 2000) %>% 
+    filter(race %in% c( "Black", "White","Asian/Pacific Islander")) %>% 
+    mutate(race = factor(race, levels = c("Black", "White", "Asian/Pacific Islander"))) %>% 
+ggplot(aes(x=arrest_year, y=arrest_age_by_year)) +
+  geom_smooth(aes(group=race, color=race, fill=race)) +
+  theme_bw() +
+  xlab("arrest year") +
+  ylab("defendant age by arrest") +
+  theme(legend.position = "bottom") +
+  ggtitle("defendent age by year for different race")
+
+p
+# ggsave("defendant_age_by_year_race.png", p, width=10)
+```
+
+
+## age - year for type of court
+
+```{r}
+tmp2 = tmp %>% 
+left_join(ddt_court_type)
+lm_m = lm(
+  arrest_age_by_year ~ arrest_year + court_office_types, 
+  data = tmp2 %>% filter(arrest_year >= 2000, court_office_types %in% c("Municipal", "Criminal"))
+  )
+
+summary(lm_m)
+```
+
+```{r}
+tmp2 %>% 
+  filter(arrest_year >= 2000) %>% 
+  ggplot(aes(x=arrest_year, y=arrest_age_by_year)) +
+  geom_smooth(aes(group=court_types, color=court_types, fill=court_types)) +
+  theme_bw() +
+  xlab("arrest year") +
+  ylab("defendant age by arrest") +
+  theme(legend.position = "bottom") +
+  ggtitle("defendent age by year")
+```
+
+```{r}
+lm_m = lm(
+  arrest_age_by_year ~ arrest_year + court_types, 
+  data = tmp2 %>% filter(arrest_year >= 2000)
+  )
+
+summary(lm_m)
+```
+
+```{r}
+tmp2 = tmp %>% 
+left_join(ddt_court_type)
+lm_m = lm(
+  arrest_age_by_year ~ arrest_year*court_office_types, 
+  data = tmp2 %>% filter(arrest_year >= 2000, court_office_types %in% c("Municipal", "Criminal"))
+  )
+
+summary(lm_m)
+```
+
+```{r}
+p <- tmp2 %>% 
+  filter(arrest_year >= 2000, court_office_types %in% c("Municipal", "Criminal")) %>% 
+  ggplot(aes(x=arrest_year, y=arrest_age_by_year)) +
+  geom_smooth(aes(group=court_office_types, color=court_office_types, fill=court_office_types)) +
+  theme_bw() +
+  xlab("arrest year") +
+  ylab("defendant age by arrest") +
+  theme(legend.position = "bottom") +
+  ggtitle("defendent age by year for different office types")
+  
+p
+# ggsave("defendant_age_by_year_officeTypes.png", p, width=10)
+```
+
+# offense
+
+```{r}
+offense <- vroom::vroom(
+  "https://storage.googleapis.com/jat-rladies-2021-datathon/offenses_dispositions.csv", col_select = c("docket_id", "grade", "sentence_type", "min_period", "max_period")
+) %>% distinct() %>% 
+  filter(!is.na(grade), grade!="1")
+```
+
+## grade  
+```{r}
+offense_grade = offense %>% mutate(
+  grade_type = case_when(
+    str_starts(grade, "F") ~ "Felony",
+    str_starts(grade, "M") ~ "Misdemeanor",
+    str_starts(grade, "H") ~ "Homicide",
+    str_starts(grade, "S") ~ "Summary"
+  )) %>% select(docket_id, grade_type) %>% 
+  filter(!is.na(grade_type)) %>% 
+    distinct()
+
+```
+

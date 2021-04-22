@@ -1,7 +1,8 @@
 ---
 title: "clean and quick summary docket data"
 author: "Chun"
-output: html_document
+output: github_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -198,12 +199,12 @@ ddt_representation_type %>%
 
 # save all files
 ```{r}
-# save(defendent_info, ddt_dates, ddt_judicial_districts, ddt_court_type, ddt_representation_type, file="ddt_tables.Rdata")
-write.csv(defendent_info, file=file.path("../../data/_clean","docket_defendent.csv"), row.names=F)
-write.csv(ddt_dates, file=file.path("../../data/_clean","docket_dates.csv"), row.names=F)
-write.csv(ddt_judicial_districts, file=file.path("../../data/_clean","docket_judicialDistricts.csv"), row.names=F)
-write.csv(ddt_court_type, file=file.path("../../data/_clean","docket_courtType.csv"), row.names=F)
-write.csv(ddt_representation_type, file=file.path("../../data/_clean","docket_representationType.csv"), row.names=F)
+save(defendent_info, ddt_dates, ddt_judicial_districts, ddt_court_type, ddt_representation_type, file="ddt_tables.Rdata")
+# write.csv(defendent_info, file=file.path("../../data/_clean","docket_defendent.csv"), row.names=F)
+# write.csv(ddt_dates, file=file.path("../../data/_clean","docket_dates.csv"), row.names=F)
+# write.csv(ddt_judicial_districts, file=file.path("../../data/_clean","docket_judicialDistricts.csv"), row.names=F)
+# write.csv(ddt_court_type, file=file.path("../../data/_clean","docket_courtType.csv"), row.names=F)
+# write.csv(ddt_representation_type, file=file.path("../../data/_clean","docket_representationType.csv"), row.names=F)
 ```
 
 # session info
