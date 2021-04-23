@@ -151,7 +151,7 @@ def_disp <- def_raw %>%
         factor(ordered = TRUE)
   )
 
-def_disp %>%
+p <- def_disp %>%
   drop_na(period_bef_aft) %>%
   mutate(
     offense_type = substr(grade, 1, 1),
@@ -176,17 +176,23 @@ def_disp %>%
   labs(fill = NULL, y = "Offense grade", x = "Max sentence (days)") +
   guides(fill = guide_legend(reverse = TRUE)) +
   geom_segment(aes(x = x_bar, xend = x_bar, yend = offense_type),
-    color = "#99C945", size = 2
+    color = "#99C945", size = 1.5
   ) +
   rcartocolor::scale_fill_carto_d() +
   facet_wrap(vars(offense_facet), scales = "free") +
   theme_classic() +
   theme(
-    legend.position = c(0.95, 0.1),
+    legend.position = c(0.95, 0.2),
     panel.grid.major.y = element_blank()
   ) +
   # gghighlight::gghighlight(!grade %in% c("M1", "M3", "F", "S", "IC")) +
   NULL
+p
 ```
 
 ![](max-sentencing_files/figure-gfm/max-sentence-trend-1.png)<!-- -->
+
+``` r
+ggsave('reports/figs/max-sentence.png', p, height = 3, width = 7)
+# ggsave('figs/max-sentence.png', p, height = 3, width = 7)
+```
