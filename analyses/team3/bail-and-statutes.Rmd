@@ -28,8 +28,8 @@ library(reshape2)
 ### Load Data
 
 ```{r}
-docket_charges <- readRDS("reports/data/clean/docket_charges.Rds")
-docket_charges$timeframe <- factor(docket_charges$timeframe, levels = c("pre-Krasner","post-Krasner"))
+docket_charges <- readRDS("reports/data/clean/docket_charges.Rds") %>%
+  mutate(timeframe = factor(timeframe, levels = c("pre-Krasner","post-Krasner")))
 ```
 
 
