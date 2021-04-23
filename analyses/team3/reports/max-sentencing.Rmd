@@ -147,6 +147,8 @@ def_disp <- def_raw %>%
 p <- def_disp %>%
   drop_na(period_bef_aft) %>%
   mutate(
+    grade = grade %>% 
+      fct_relevel("F", "M", after = 0),
     offense_type = substr(grade, 1, 1),
     x_bar = case_when(
       offense_type == "M" ~ 365,
