@@ -2,14 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-data/bail_2016.csv
-data/bail_2017.csv
-data/bail_2018.csv
-data/bail_2019.csv
-data/defendant_docket_details_2016_2017.csv
-data/defendant_docket_details_2018_2019.csv
-data/offenses_dispositions_2016_2017.csv
-data/offenses_dispositions_2018_2019.csv
+data/
 *.Rds
-data/statutes.csv
-data/statute_hierarchy.csv
