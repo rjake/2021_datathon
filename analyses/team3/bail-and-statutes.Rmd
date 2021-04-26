@@ -187,10 +187,8 @@ statute_percent_top <- statute_percent %>%
   dplyr::pull(statute)
 statute_percent_bottom <- statute_percent %>%
   arrange((Percent_Diff)) %>%
-  dplyr::filter(Percent_Diff < -.2) %>%
+  dplyr::filter(Percent_Diff < -.1) %>%
   dplyr::pull(statute)
-
-
 
 ```
 Plotting by percentage of dockets per statute category.
@@ -212,6 +210,7 @@ ggplot(statute_percent %>%
         legend.position = "bottom")
 
 # plot difference in number of dockets per statute (pre vs. post)
+
 ggplot(statute_percent %>% 
          dplyr::filter(statute %in% c(statute_percent_top,statute_percent_bottom)),
        aes(reorder(statute, -Percent_Diff),Percent_Diff,fill=title_text)) +
@@ -224,6 +223,7 @@ ggplot(statute_percent %>%
         axis.text.y = element_text(size = 10),
         axis.title.y = element_text(size = 12),
         legend.position = "bottom")
+ggsave(paste0("figures/",Sys.Date(),"_Statutes-PercentDiff-PrePostKrasner.png"),height = 5,width = 6, device = "png", dpi=700)
 
 # plot fold change in number of dockets per statute (pre vs. post)
 ggplot(statute_percent %>% 
@@ -239,6 +239,7 @@ ggplot(statute_percent %>%
         axis.text.y = element_text(size = 10),
         axis.title.y = element_text(size = 12),
         legend.position = "bottom")
+
 ```
 
 Change in Minimum Sentencing Across Statutes
@@ -253,7 +254,8 @@ docket_confine <- docket_charges %>%
 
 # plot log(min_bail) vs. top/bottom statutes
 ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
-               aes(x=statute,y=log(min_bail),fill=timeframe)) +
+               aes(x=statute,y=min_bail,fill=timeframe)) +
+  scale_y_log10() +
   geom_boxplot(position = "dodge") + #geom_violin(color="black") +
   facet_grid(~Change,scales = "free",space="free") +
   labs(title = "Minimum Bail for Statute Categories", fill = "Timeframe") +
@@ -266,7 +268,8 @@ ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
 
 # plot log(min_sentencing) vs. top/bottom statutes
 ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
-               aes(x=statute,y=log(min_sentencing),fill=timeframe)) +
+               aes(x=statute,y=min_sentencing,fill=timeframe)) +
+  scale_y_log10() +
   geom_boxplot(position = "dodge") + #geom_violin(color="black") +
   facet_grid(~Change,scales = "free",space="free") +
   labs(title = "Minimum Sentencing for Statute Categories", fill = "Timeframe") +
@@ -280,15 +283,87 @@ ggplot(docket_confine %>% dplyr::filter(Change %in% c("Increase","Decrease")),
 ```
 
 
-#### Bail
+#### Trends in Black vs. White, Pre/Post Krasner
 [X] Minimum bail ($) pre/post Krasner, separated by race and grade
+[X] Minimum sentencing (days) pre/post Krasner, separated by race and grade
+
+Subset dataset on misdemeanors and felonies, and combine ungraded and third-degree categories.
+```{r}
+require(scales)
+
+mis.fel.subset <- c("M","M3","M2","M1","F","F3","F2","F1")
+# mis.fel.subset <- c("F1")
+docket_charges_bail <- docket_charges %>%
+  dplyr::filter(race %in% c("Black","White"), grade %in% mis.fel.subset) %>%
+  mutate(grade = factor(grade,levels = mis.fel.subset)) %>%
+  drop_na(min_bail,min_sentencing)
+           
+docket_charges_bail$grade[docket_charges_bail$grade == "M"] <- "M3"
+docket_charges_bail$grade[docket_charges_bail$grade == "F"] <- "F3"
+
+docket_charges_bail$grade <- gsub("M3","M3/M",docket_charges_bail$grade)
+docket_charges_bail$grade <- gsub("F3","F3/F",docket_charges_bail$grade)
+
+docket_charges_bail$grade <- factor(docket_charges_bail$grade,levels = c("M3/M","M2","M1","F3/F","F2","F1"))
+
+docket_charges_bail$timeframe <- gsub("pre-Krasner","before",docket_charges_bail$timeframe)
+docket_charges_bail$timeframe <- gsub("post-Krasner","after",docket_charges_bail$timeframe)
+
+docket_charges_bail$timeframe <- factor(docket_charges_bail$timeframe, levels = c("before","after"))
+
+```
+
+F1 minimum bail becomes more equitable between Black/White after Krasner takes office.
+```{r}
+
+docket_charges_bail %>%
+  group_by(timeframe,race,grade) %>%
+  summarize(median=median(min_bail),mean=mean(min_bail),n=n())
+
+ggplot(docket_charges_bail,aes(x=timeframe,y=min_bail,color=race, fill=race)) +
+  scale_y_continuous(label=comma) +
+  facet_wrap(~grade, nrow = 1) +
+  scale_color_manual(values = c("black", "gray")) +
+  scale_fill_manual(values = c("black", "gray")) +
+  stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=0.1, position=position_dodge(width = 0.75)) +
+  stat_summary(fun=mean, geom="point", size=3, position=position_dodge(width = 0.75)) +
+  ylab("Minimum Bail ($)") + xlab("") +
+  theme_bw() + theme(panel.grid.minor = element_blank())
+ggsave(paste0("figures/",Sys.Date(),"_Bail-MandFgrade-Race-PrePostKrasner.png"),height = 3,width = 8, device = "png", dpi=700)
+
+```
+
+F1 minimum sentencing becomes more equitable between Black/White after Krasner takes office.
+```{r}
+
+docket_charges_bail %>%
+  group_by(timeframe,race,grade) %>%
+  summarize(median=median(min_sentencing),mean=mean(min_sentencing),n=n())
+
+# sentencing by MEAN
+ggplot(docket_charges_bail,aes(x=timeframe,y=min_sentencing,color=race, fill=race)) +
+  #scale_y_log10() +
+  facet_wrap(~grade, nrow=1) +
+  scale_color_manual(values = c("black", "gray")) +
+  scale_fill_manual(values = c("black", "gray")) +
+  stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=0.1, position=position_dodge(width = 0.75)) +
+  stat_summary(fun=mean, geom="point", size=3, position=position_dodge(width = 0.75)) +
+  stat_summary(fun=mean, geom="point", size=3, position=position_dodge(width = 0.75)) +
+  ylab("Minimum Sentencing (days)") + xlab("") +
+  theme_bw() +  theme(panel.grid.minor = element_blank())
+ggsave(paste0("figures/",Sys.Date(),"_Sentencing-MandFgrade-Race-PrePostKrasner.png"),height = 3,width = 8, device = "png", dpi=700)
+
+```
+
 
 ```{r}
 
 # plotting felonies,by race, before and after Krasner
+
 ggplot(docket_charges %>%
                  dplyr::filter(race %in% c("Black","White"),grepl("F",grade)),
-               aes(x=timeframe,y=log(min_bail),fill=race)) +
+               aes(x=timeframe,y=min_bail,fill=race)) +
+  scale_y_log10() +
   geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
   facet_wrap(~grade,scales = "free") +
   theme_bw() + scale_fill_manual(values=c("darkgray","white"))
@@ -296,7 +371,8 @@ ggplot(docket_charges %>%
 # plotting misdemeanor, by race, before and after Krasner
 ggplot(docket_charges %>%
                  dplyr::filter(race %in% c("Black","White"),grepl("M",grade)),
-               aes(x=timeframe,y=log(min_bail),fill=race)) +
+               aes(x=timeframe,y=min_bail,fill=race)) +
+  scale_y_log10() +
   geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
   facet_wrap(~grade,scales = "free") +
   theme_bw() + scale_fill_manual(values=c("darkgray","white"))
@@ -304,7 +380,8 @@ ggplot(docket_charges %>%
 # plotting all grades, by race, before and after Krasner
 ggplot(docket_charges %>%
                  dplyr::filter(race %in% c("Black","White")),
-               aes(x=timeframe,y=log(min_bail),fill=race)) +
+               aes(x=timeframe,y=min_bail,fill=race)) +
+    scale_y_log10() +
   geom_violin(color="black") + geom_boxplot(width=0.1,position = "dodge") +
   facet_wrap(~grade,scales = "free") +
   theme_bw() + scale_fill_manual(values=c("darkgray","white"))
