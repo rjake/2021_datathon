@@ -165,7 +165,5 @@ def_disp %>%
     mapping = aes(x = 3*365, xend = 3*365, y = 'F', yend = 'F3'),
                color = '#99C945', size = 2) +
   rcartocolor::scale_fill_carto_d() +
-  facet_grid(cols = vars(sentence_type), scales = 'free') +
-  # gghighlight::gghighlight(!grade %in% c("M1", "M3", "F", "S", "IC")) +
-  NULL
+  facet_grid(cols = vars(sentence_type), scales = 'free')
 ```
