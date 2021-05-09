@@ -266,12 +266,12 @@ ggplot(statutes_off_percent_sub %>%
   geom_bar(position="dodge",stat="identity",color="black") +
   theme_bw() + scale_fill_manual(values = c("#E58605","#5D6AB0")) +
   facet_grid(Change ~ ., scales = "free", space = "free") +
-  ylab("") + xlab("Percentage of Offenses (%)") +
+  ylab("") + xlab("Percentage of Dockets (%)") +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 8,color="black"),
         axis.title.y = element_text(size = 12),
         legend.position = "bottom")
-ggsave(paste0("figures/statutes/",Sys.Date(),"_Offenses-Statutes-Percent.png"),height = 4,width = 8, device = "png", dpi=700)
+ggsave(paste0("figures/statutes/",Sys.Date(),"_Dockets-Statutes-Percent.png"),height = 4,width = 8, device = "png", dpi=700)
 
 ```
 
@@ -305,7 +305,7 @@ ggplot(statutes_percent_sub,
   geom_bar(stat="identity", color="black") +
   theme_bw() + scale_fill_nejm() +
   labs(fill = "Statute Title") +
-  ylab("") + xlab("Fold Change in Percentage of Offenses") +
+  ylab("") + xlab("Fold Change in Percentage of Dockets") +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 8,color="black"),
         axis.title.y = element_text(size = 12),
@@ -397,12 +397,49 @@ ggplot(statBefore_filter,aes(y=statute_description, x = value, color=variable, f
   facet_grid(Change ~., scales = "free", space="free") +
   scale_fill_manual(values = c("Black","White")) + 
   labs(title = "Before Krasner (F1 only)", fill = "Race") +
-  xlab("Percent of Statues (%)") + ylab("") +
+  xlab("Percent of Statutes (%)") + ylab("") +
   theme_bw() + theme(panel.grid.minor = element_blank())
 ggsave(paste0("figures/bail/",Sys.Date(),"_Dockets-Bail-F1-Before-Statutes.png"),height = 4,width = 8, device = "png", dpi=700)
 
 
 ```
+
+Closer look at % statutes (F1, after) between races.
+```{r}
+
+# plot statutes by race in F1 before 
+docket_charges_race_statAfter <- docket_charges_race %>% 
+  dplyr::filter(grade == "F1", timeframe=="after") %>%
+  group_by(race,statute) %>%
+  count(race,statute,name="Number") %>%
+  group_by(race) %>% 
+  mutate(Percent = (Number/sum(Number))*100) %>%
+  dplyr::select(race,statute,Percent) %>%
+  spread(race,Percent) %>% replace_na(list(Black = 0, White = 0)) %>%
+  mutate(Percent_Diff_BW = Black - White,
+         Percent_FC_BW = Black / White) %>%
+  merge(.,statute_df,by="statute")
+
+statAfter_filter <- docket_charges_race_statAfter %>%
+  dplyr::filter(Black > .5 | White > .5,
+                Percent_FC_BW > 1.25 | Percent_FC_BW < 0.8) %>%
+  mutate(Change = factor(ifelse(Percent_Diff_BW > 0 , "Black","White"),
+                         levels = c("Black","White"))) %>%
+  dplyr::select(statute_description,Black,White,Change) %>%
+  melt(.,id.vars=c("statute_description","Change"))
+  
+ggplot(statAfter_filter,aes(y=statute_description, x = value, color=variable, fill=variable)) +
+  geom_bar(stat="identity",position="dodge",color="black") +
+  facet_grid(Change ~., scales = "free", space="free") +
+  scale_fill_manual(values = c("Black","White")) + 
+  labs(title = "After Krasner (F1 only)", fill = "Race") +
+  xlab("Percent of Statutes (%)") + ylab("") +
+  theme_bw() + theme(panel.grid.minor = element_blank())
+ggsave(paste0("figures/bail/",Sys.Date(),"_Dockets-Bail-F1-After-Statutes.png"),height = 4,width = 8, device = "png", dpi=700)
+
+
+```
+
 
 ### Minimum Sentencing (by dockets)
 - Check minimum sentencing by probation and confinement
