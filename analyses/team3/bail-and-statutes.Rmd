@@ -147,7 +147,8 @@ statute_off_percent <- offenses_details %>%
   spread(timeframe, Percent) %>%  
   drop_na() %>%
   mutate(Percent_Diff = `after` - `before`,
-         Percent_FC = `after` / `before`) %>%
+         Percent_FC = `after` / `before`,
+         Percent_FC_overOne = ifelse(Percent_FC < 1, (-1/(Percent_FC)),Percent_FC)) %>% # added this
   mutate(Change = factor(ifelse(Percent_Diff > 0 , "Increase","Decrease"),
                          levels = c("Increase","Decrease")),
          title_id = gsub("\\ .*","",statute_name)) %>%
@@ -167,15 +168,18 @@ statutes_off_percent_sub <- statute_off_percent %>%
 
 Plotting by percentage of offenses per statute category (before AND after).
 ```{r}
+
 # plot group bar (pre and post) by number of offenses per statute
 ## need to change from "wide" to "long" format
-ggplot(statutes_off_percent_sub %>% 
+ggplot(statutes_off_percent_sub %>%
          pivot_longer(cols = c("before","after"),names_to="timeframe",
                       values_to="Percent") %>%
+         arrange(statute_description,timeframe,Percent_FC_overOne) %>%
          mutate(timeframe = factor(timeframe,levels = c("after","before"))),
-       aes(y=statute_description,x=Percent,fill=timeframe))+ 
+       aes(y=reorder(statute_description,-Percent_FC_overOne),x=Percent,fill=timeframe)) + 
   geom_bar(position="dodge",stat="identity",color="black") +
-  theme_bw() + scale_fill_manual(values = c("#E58605","#5D6AB0")) +
+  theme_bw() + scale_fill_manual(values = c("#E58605","#5D6AB0"),
+                                 guide = guide_legend(reverse = TRUE)) +
   facet_grid(Change ~ ., scales = "free", space = "free") +
   ylab("") + xlab("Percentage of Offenses (%)") +
   theme(axis.text.x = element_text(size = 10),
@@ -183,6 +187,7 @@ ggplot(statutes_off_percent_sub %>%
         axis.title.y = element_text(size = 12),
         legend.position = "bottom")
 ggsave(paste0("figures/statutes/",Sys.Date(),"_Offenses-Statutes-Percent.png"),height = 4,width = 8, device = "png", dpi=700)
+
 ```
 
 Plotting by percentage of offenses per statute category (difference in percent, after - before).
